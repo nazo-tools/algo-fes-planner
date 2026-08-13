@@ -1028,20 +1028,22 @@ function render() {
     ph.appendChild(b);
   }
 
-  // 一覧を畳めば、みるに移らなくてもその場で予定表が広がる
-  const fold = el("button", "fold", S.topOpen ? "▲" : "▼");
+  const body = el("div", "topbody");
+  (S.phase === 1 ? phase1 : phase2)(body);
+
+  // 動かすのは2つのペインの境目なので、つまみもそこに置く。
+  // 畳めば、みるに移らなくてもその場で予定表が広がる
+  const fold = el("button", "fold");
   fold.setAttribute("aria-expanded", String(S.topOpen));
   fold.setAttribute("aria-label", S.topOpen ? "一覧を畳んで予定表を広げる" : "一覧をひらく");
+  fold.append(el("span", "grip"), el("span", "chev"), el("span", "grip"));
   fold.onclick = () => {
     S.topOpen = !S.topOpen;
     S.picker = null;
     render();
   };
-  ph.appendChild(fold);
 
-  const body = el("div", "topbody");
-  (S.phase === 1 ? phase1 : phase2)(body);
-  top.append(ph, body);
+  top.append(ph, body, fold);
 
   const bot = el("div", "bot");
   board(bot);

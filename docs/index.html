@@ -101,9 +101,18 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
   padding:3px 10px;border-radius:4px}
 .modes button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 
-/* 一覧を畳んで予定表を広げる */
-.fold{flex:none;width:30px;border:1px solid var(--line);background:var(--surface);
-  color:var(--subtle);cursor:pointer;font:inherit;font-size:.7rem;border-radius:5px}
+/* 一覧を畳んで予定表を広げる。動かす場所そのものをつまみにする */
+.fold{position:relative;flex:none;display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;height:26px;padding:0 14px;border:0;background:var(--bg);cursor:pointer}
+/* 線は細いままで、指で押せる高さだけ広げる */
+.fold::after{content:"";position:absolute;left:0;right:0;top:-9px;bottom:0}
+.fold .grip{flex:1;height:1px;background:var(--line)}
+.fold .chev{flex:none;width:0;height:0;border-left:5px solid transparent;
+  border-right:5px solid transparent}
+.fold[aria-expanded="true"] .chev{border-bottom:5px solid var(--subtle)}
+.fold[aria-expanded="false"] .chev{border-top:5px solid var(--subtle)}
+.fold:hover .grip{background:var(--subtle)}
+.fold:hover .chev{border-bottom-color:var(--ink);border-top-color:var(--ink)}
 .top.folded{flex:none}
 .top.folded .topbody{display:none}
 .bot.only{background:var(--sunken)}
@@ -2544,20 +2553,22 @@ function render() {
     ph.appendChild(b);
   }
 
-  // 一覧を畳めば、みるに移らなくてもその場で予定表が広がる
-  const fold = el("button", "fold", S.topOpen ? "▲" : "▼");
+  const body = el("div", "topbody");
+  (S.phase === 1 ? phase1 : phase2)(body);
+
+  // 動かすのは2つのペインの境目なので、つまみもそこに置く。
+  // 畳めば、みるに移らなくてもその場で予定表が広がる
+  const fold = el("button", "fold");
   fold.setAttribute("aria-expanded", String(S.topOpen));
   fold.setAttribute("aria-label", S.topOpen ? "一覧を畳んで予定表を広げる" : "一覧をひらく");
+  fold.append(el("span", "grip"), el("span", "chev"), el("span", "grip"));
   fold.onclick = () => {
     S.topOpen = !S.topOpen;
     S.picker = null;
     render();
   };
-  ph.appendChild(fold);
 
-  const body = el("div", "topbody");
-  (S.phase === 1 ? phase1 : phase2)(body);
-  top.append(ph, body);
+  top.append(ph, body, fold);
 
   const bot = el("div", "bot");
   board(bot);
