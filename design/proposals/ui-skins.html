@@ -1,0 +1,1679 @@
+<title>見た目とフォント 5案 — algoフェス2026 はしごプランナー</title>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f1f0ed; --surface:#fff; --sunken:#e9e8e4;
+  --ink:#1c1e21; --muted:#5c6066; --subtle:#8b9096;
+  --line:#dbdad5; --line-soft:#e8e7e3;
+  --v-hallHigh:#bd3350; --v-room2f:#0e7a72; --v-hall2f:#5f45a8;
+  --onblk:#fff; --ghost:.14;
+  --font-ui:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
+  --font-num:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Mono",Consolas,monospace;
+  --shadow:0 1px 1px rgba(20,22,26,.04),0 3px 10px rgba(20,22,26,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15161a; --surface:#1e2024; --sunken:#26282d;
+  --ink:#e8e9ea; --muted:#a0a4aa; --subtle:#767b82;
+  --line:#32353b; --line-soft:#2a2d32;
+  --v-hallHigh:#f2778c; --v-room2f:#3fbfb2; --v-hall2f:#a38ef0;
+  --onblk:#14151a; --ghost:.22;
+  --shadow:0 1px 1px rgba(0,0,0,.4),0 3px 10px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --bg:#15161a; --surface:#1e2024; --sunken:#26282d;
+  --ink:#e8e9ea; --muted:#a0a4aa; --subtle:#767b82;
+  --line:#32353b; --line-soft:#2a2d32;
+  --v-hallHigh:#f2778c; --v-room2f:#3fbfb2; --v-hall2f:#a38ef0;
+  --onblk:#14151a; --ghost:.22;
+  --shadow:0 1px 1px rgba(0,0,0,.4),0 3px 10px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
+  font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%}
+:where(button,input,select):focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px 40px}
+.hero{padding:22px 0 10px}
+.hero h1{margin:0;font-size:1.16rem;font-weight:800}
+.hero p{margin:6px 0 0;color:var(--muted);font-size:.83rem}
+.note{margin:12px 0 16px;background:var(--sunken);border:1px solid var(--line);
+  border-radius:9px;padding:11px 13px;font-size:.8rem;color:var(--muted)}
+.note b{color:var(--ink)}
+.note ul{margin:6px 0 0;padding-left:1.1em}
+
+.phone{max-width:390px;margin:0 auto;border:1px solid var(--line);border-radius:20px;
+  background:var(--bg);box-shadow:var(--shadow);overflow:hidden}
+.pane{height:680px;display:flex;flex-direction:column}
+
+/* ---- 上ペイン ---- */
+.top{flex:0 0 47%;display:flex;flex-direction:column;border-bottom:1px solid var(--line);
+  background:var(--bg);min-height:0}
+.phases{display:flex;gap:5px;padding:10px 11px 8px}
+.phases button{flex:1;padding:7px 5px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  font:inherit;font-size:.77rem;font-weight:700;line-height:1.25}
+.phases button b{display:block;font-size:.66rem;color:var(--subtle)}
+.phases button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.phases button[aria-selected="true"] b{color:var(--surface);opacity:.6}
+.topbody{flex:1;overflow-y:auto;padding:0 11px 12px;min-height:0}
+.hint{font-size:.73rem;color:var(--subtle);margin:0 0 8px}
+
+.vh{font-size:.66rem;letter-spacing:.1em;color:var(--subtle);font-weight:700;margin:10px 0 5px}
+.vh:first-child{margin-top:0}
+.slist{display:flex;flex-direction:column;gap:4px}
+.srow{border:1px solid var(--line);border-left:3px solid var(--venue);border-radius:8px;
+  background:var(--surface);overflow:hidden}
+.srow.done{border-left-color:var(--venue);background:var(--sunken)}
+.shead{display:flex;align-items:center;width:100%}
+.fav{flex:none;border:0;background:none;cursor:pointer;padding:7px 2px 7px 8px;
+  font-size:.82rem;line-height:1;color:var(--subtle)}
+.fav[aria-pressed="true"]{color:#d08a12}
+:root[data-theme="dark"] .fav[aria-pressed="true"],
+:root:not([data-theme="light"]) .fav[aria-pressed="true"]{color:#e8b552}
+.stitle{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:7px 9px 7px 6px;
+  cursor:pointer;background:none;border:0;font:inherit;color:inherit;text-align:left}
+.shead .nm{flex:1;min-width:0;font-size:.81rem;font-weight:700;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rescue{border:1px solid var(--warn-line,#e4d3ab);background:var(--warn-soft,#f7eeda);
+  color:#8a5a00;border-radius:8px;padding:9px 10px;margin-bottom:9px;font-size:.74rem}
+:root[data-theme="dark"] .rescue,:root:not([data-theme="light"]) .rescue{
+  background:#2e2718;border-color:#453a22;color:#e3b768}
+.rescue b{display:block;margin-bottom:4px;font-size:.76rem}
+.rescue button{display:block;width:100%;text-align:left;margin-top:5px;border-radius:6px;
+  border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:.72rem;padding:5px 8px;line-height:1.35}
+.winrow{display:flex;gap:5px;align-items:center;font-size:.7rem;color:var(--muted);
+  margin-bottom:4px;flex-wrap:wrap}
+.winrow input{font:inherit;font-family:var(--font-num);font-size:.7rem;padding:3px 5px;
+  border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.winrow .lbl{font-weight:700;min-width:4.6em}
+.godays{display:flex;gap:5px;align-items:center;margin-bottom:8px}
+.godays .lbl{font-size:.7rem;color:var(--subtle);font-weight:700}
+.godays button{flex:1;padding:5px 6px;border-radius:7px;cursor:pointer;
+  border:1px dashed var(--line);background:transparent;color:var(--subtle);
+  font:inherit;font-size:.73rem;font-weight:700}
+.godays button[aria-pressed="true"]{border-style:solid;border-color:var(--ink);
+  background:var(--ink);color:var(--surface)}
+.favonly{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted);
+  margin:6px 0 2px}
+.shead .mt{font-size:.66rem;color:var(--subtle);font-variant-numeric:tabular-nums;flex:none}
+.shead .tick{flex:none;font-size:.72rem;font-weight:700;color:var(--venue)}
+.srow.done .shead .nm{color:var(--muted)}
+.slots{padding:0 9px 9px;border-top:1px solid var(--line-soft)}
+.dl{font-size:.66rem;color:var(--subtle);margin:7px 0 4px;font-weight:700}
+.sc{display:flex;flex-wrap:wrap;gap:4px}
+.sc button{border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:6px;padding:3px 7px;cursor:pointer;font:inherit;font-size:.7rem;
+  font-variant-numeric:tabular-nums;font-family:var(--font-num)}
+.sc button:disabled{opacity:.3;cursor:not-allowed;text-decoration:line-through}
+.warnq{font-size:.68rem;color:#a4560a;font-weight:700}
+:root[data-theme="dark"] .warnq,:root:not([data-theme="light"]) .warnq{color:#e0a75f}
+
+.restbar{display:flex;gap:6px;margin:9px 0 4px}
+.btn{flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;border:1px solid var(--ink);
+  background:var(--ink);color:var(--surface);font:inherit;font-size:.79rem;font-weight:700}
+.btn.sub{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.brk{display:flex;gap:5px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.brk select,.brk input{font:inherit;font-size:.72rem;padding:4px 6px;border-radius:6px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  font-family:var(--font-num)}
+.brk .btn{flex:none;padding:5px 10px;font-size:.72rem}
+
+.gapc{border:1px dashed var(--line);border-radius:8px;padding:8px 9px;margin-bottom:6px;
+  background:var(--surface)}
+.gapc .gt{font-size:.72rem;font-weight:700;font-variant-numeric:tabular-nums}
+.gapc .gs{font-size:.66rem;color:var(--subtle);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chip{border:1px dashed var(--venue);background:transparent;color:var(--ink);border-radius:999px;
+  padding:3px 9px;cursor:pointer;font:inherit;font-size:.7rem;font-variant-numeric:tabular-nums}
+.chip::before{content:"＋";color:var(--venue);font-weight:700;margin-right:3px}
+.chip .lc{color:#a4560a;font-weight:700}
+:root[data-theme="dark"] .chip .lc,:root:not([data-theme="light"]) .chip .lc{color:#e0a75f}
+.none{font-size:.7rem;color:var(--subtle)}
+
+/* ---- 下ペイン ---- */
+.bot{flex:1;overflow-y:auto;background:var(--sunken);padding:9px 11px 14px;min-height:0}
+.tot{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.73rem;
+  font-variant-numeric:tabular-nums;margin-bottom:8px;color:var(--muted)}
+.tot b{font-size:.88rem;color:var(--ink)}
+.tot .sp{margin-left:auto;color:var(--subtle)}
+.board{display:grid;grid-template-columns:30px 1fr 1fr;gap:5px;position:relative}
+.dh{font-size:.68rem;font-weight:700;color:var(--muted);text-align:center;
+  padding-bottom:3px;position:sticky;top:0;background:var(--sunken);z-index:2}
+.dh.ax{color:transparent}
+.axc{position:relative}
+.axc .tk{position:absolute;right:2px;font-family:var(--font-num);font-size:.6rem;
+  color:var(--subtle);transform:translateY(-.5em)}
+.daycol{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:7px}
+.daycol .hr{position:absolute;left:0;right:0;border-top:1px solid var(--line-soft)}
+.ev{position:absolute;left:2px;right:2px;border-radius:5px;padding:2px 5px;overflow:hidden;
+  background:var(--venue);color:var(--onblk)}
+.ev .et{font-size:.63rem;font-weight:700;line-height:1.2;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.ev .ee{font-size:.57rem;opacity:.85;font-family:var(--font-num)}
+.ev .x{position:absolute;top:0;right:1px;border:0;background:none;cursor:pointer;
+  color:var(--onblk);opacity:.8;font-size:.72rem;line-height:1;padding:2px 3px}
+.ev.rest{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,transparent 5px 10px);
+  border:1px dashed var(--line);color:var(--muted)}
+.ev.rest .x{color:var(--muted)}
+.ev.new{outline:2px solid var(--ink);outline-offset:-2px}
+.emptyday{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;color:var(--subtle)}
+
+.foot{margin-top:18px;color:var(--subtle);font-size:.73rem;text-align:center}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+.swrap{max-width:1320px;margin:0 auto;padding:0 14px 48px}
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(372px,1fr))}
+.card{min-width:0}
+.chead{margin:0 0 10px}
+.chead h2{margin:0;font-size:1rem;font-weight:800;display:flex;align-items:baseline;gap:7px}
+.chead h2 .n{font-family:var(--font-num);font-size:.72rem;color:var(--subtle);font-weight:700}
+.chead p{margin:4px 0 0;font-size:.79rem;color:var(--muted);line-height:1.55}
+.meta{margin:7px 0 0;display:flex;flex-direction:column;gap:3px;font-size:.73rem;color:var(--subtle)}
+.meta b{color:var(--muted);font-weight:700}
+.sw{display:flex;gap:4px;margin:8px 0 0;align-items:center}
+.sw i{width:20px;height:20px;border-radius:4px;border:1px solid var(--line);display:block}
+
+/* 案ごとに固まった見た目を見せるため、閲覧側のテーマに追従させない。
+   採用案には端末のダーク設定に沿うダーク版を別途作る。 */
+.skinhost[data-skin="1"]{--bg:#f2f1ee; --surface:#fff; --sunken:#e8e7e3; --ink:#17181b; --muted:#55595f; --subtle:#868b91; --line:#d5d4cf; --line-soft:#e6e5e1; --v-hallHigh:#a8354c; --v-room2f:#0b6f68; --v-hall2f:#57409c; --onblk:#fff; --ghost:.14; --star:#b8790a; --warn-bg:#f4efe2; --warn-bd:#ded0ae; --warn-fg:#7d5300; --font-ui:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif; --font-num:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Mono",Consolas,monospace; --shadow:none;}
+.skinhost[data-skin="2"]{--bg:#101318; --surface:#171b21; --sunken:#1c2027; --ink:#e6e9ed; --muted:#9aa2ac; --subtle:#6e7783; --line:#2a3038; --line-soft:#232830; --v-hallHigh:#ff7d95; --v-room2f:#35d6c3; --v-hall2f:#b295ff; --onblk:#0c0f13; --ghost:.24; --star:#f0c04f; --warn-bg:#2d2617; --warn-bd:#45391f; --warn-fg:#e8bb6b; --font-ui:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif; --font-num:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Mono",Consolas,monospace; --shadow:0 0 0 1px rgba(255,255,255,.03),0 8px 24px rgba(0,0,0,.55);}
+.skinhost[data-skin="3"]{--bg:#faf9f6; --surface:#fff; --sunken:#f0eeea; --ink:#1a1a1a; --muted:#56534e; --subtle:#8a867f; --line:#ddd9d1; --line-soft:#eae7e1; --v-hallHigh:#b0402f; --v-room2f:#1c5a6b; --v-hall2f:#6b4a8a; --onblk:#fff; --ghost:.13; --star:#a8801c; --warn-bg:#f5efe3; --warn-bd:#e0d3b6; --warn-fg:#7a5410; --font-ui:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif; --font-disp:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP","Times New Roman",serif; --font-num:Georgia,"Times New Roman","Hiragino Mincho ProN",serif; --shadow:0 1px 2px rgba(26,26,26,.05);}
+.skinhost[data-skin="4"]{--bg:#fdf3dc; --surface:#fffdf6; --sunken:#f6e9cc; --ink:#23201a; --muted:#6b6353; --subtle:#9a917d; --line:#e6d5ad; --line-soft:#efe3c6; --v-hallHigh:#e2456b; --v-room2f:#12a596; --v-hall2f:#7b4fe0; --onblk:#fffdf6; --ghost:.16; --star:#e08b12; --warn-bg:#fbe6c4; --warn-bd:#e8c898; --warn-fg:#8c5108; --font-ui:"Hiragino Maru Gothic ProN","Rounded Mplus 1c","Yu Gothic UI","Hiragino Sans",system-ui,sans-serif; --font-num:"Avenir Next",Futura,"Century Gothic","Segoe UI",system-ui,sans-serif; --shadow:0 2px 0 rgba(35,32,26,.07),0 8px 20px rgba(35,32,26,.06);}
+.skinhost[data-skin="5"]{--bg:#fff; --surface:#fff; --sunken:#ededed; --ink:#000; --muted:#3d3d3d; --subtle:#5f5f5f; --line:#9a9a9a; --line-soft:#c8c8c8; --v-hallHigh:#b00030; --v-room2f:#00615a; --v-hall2f:#4b2ea8; --onblk:#fff; --ghost:.2; --star:#9a6a00; --warn-bg:#fdf0d2; --warn-bd:#c9a24a; --warn-fg:#6b4300; --font-ui:"BIZ UDPGothic","UD デジタル教科書体 NP-B","Yu Gothic UI","Hiragino Sans",system-ui,sans-serif; --font-num:"BIZ UDPGothic","Yu Gothic UI","Hiragino Sans",system-ui,sans-serif; --shadow:0 1px 3px rgba(0,0,0,.12);}
+.skinhost[data-skin="1"] .phone{border-radius:3px;box-shadow:none}
+.skinhost[data-skin="1"] .srow,.skinhost[data-skin="1"] .daycol,.skinhost[data-skin="1"] .gapc,.skinhost[data-skin="1"] .phases button,.skinhost[data-skin="1"] .btn,.skinhost[data-skin="1"] .godays button,.skinhost[data-skin="1"] .rescue{border-radius:2px}
+.skinhost[data-skin="1"] .sc button,.skinhost[data-skin="1"] .ev,.skinhost[data-skin="1"] .winrow input,.skinhost[data-skin="1"] .brk select,.skinhost[data-skin="1"] .brk input{border-radius:2px}
+.skinhost[data-skin="1"] .chip{border-radius:2px}
+.skinhost[data-skin="1"] .sc button{font-size:.73rem;letter-spacing:.01em}
+.skinhost[data-skin="1"] .ev .ee,.skinhost[data-skin="1"] .axc .tk{letter-spacing:.01em}
+.skinhost[data-skin="1"] .vh{letter-spacing:.16em}
+.skinhost[data-skin="2"] .phone{border-radius:22px}
+.skinhost[data-skin="2"] .srow,.skinhost[data-skin="2"] .daycol,.skinhost[data-skin="2"] .gapc,.skinhost[data-skin="2"] .rescue{border-radius:11px}
+.skinhost[data-skin="2"] .ev{box-shadow:0 0 14px -5px var(--venue)}
+.skinhost[data-skin="2"] .phases button[aria-selected="true"]{background:var(--ink);color:#101318}
+.skinhost[data-skin="2"] .btn{background:var(--ink);color:#101318;border-color:var(--ink)}
+.skinhost[data-skin="2"] .btn.sub{background:transparent;color:var(--ink)}
+.skinhost[data-skin="2"] .godays button[aria-pressed="true"]{background:var(--ink);color:#101318}
+.skinhost[data-skin="3"] .phone{border-radius:8px}
+.skinhost[data-skin="3"] .srow,.skinhost[data-skin="3"] .daycol,.skinhost[data-skin="3"] .gapc,.skinhost[data-skin="3"] .phases button,.skinhost[data-skin="3"] .btn,.skinhost[data-skin="3"] .rescue{border-radius:5px}
+.skinhost[data-skin="3"] .sc button,.skinhost[data-skin="3"] .ev{border-radius:4px}
+.skinhost[data-skin="3"] .shead .nm,.skinhost[data-skin="3"] .ev .et,.skinhost[data-skin="3"] .gapc .gt,.skinhost[data-skin="3"] .tot b{font-family:var(--font-disp);font-weight:600}
+.skinhost[data-skin="3"] .phases button{font-family:var(--font-disp);font-weight:600}
+.skinhost[data-skin="3"] .vh{font-family:var(--font-disp);font-weight:600;letter-spacing:.14em}
+.skinhost[data-skin="3"] .sc button,.skinhost[data-skin="3"] .chip,.skinhost[data-skin="3"] .axc .tk,.skinhost[data-skin="3"] .ev .ee{font-variant-numeric:tabular-nums lining-nums}
+.skinhost[data-skin="4"] .phone{border-radius:26px}
+.skinhost[data-skin="4"] .srow,.skinhost[data-skin="4"] .daycol,.skinhost[data-skin="4"] .gapc,.skinhost[data-skin="4"] .rescue{border-radius:14px}
+.skinhost[data-skin="4"] .phases button,.skinhost[data-skin="4"] .btn,.skinhost[data-skin="4"] .godays button{border-radius:999px}
+.skinhost[data-skin="4"] .sc button{border-radius:999px;padding:4px 10px}
+.skinhost[data-skin="4"] .ev{border-radius:9px}
+.skinhost[data-skin="4"] .shead .nm{font-weight:800}
+.skinhost[data-skin="4"] .phases button{font-weight:800;letter-spacing:.03em}
+.skinhost[data-skin="4"] .btn{font-weight:800}
+.skinhost[data-skin="4"] .sc button,.skinhost[data-skin="4"] .chip,.skinhost[data-skin="4"] .axc .tk,.skinhost[data-skin="4"] .ev .ee,.skinhost[data-skin="4"] .tot{font-variant-numeric:tabular-nums}
+.skinhost[data-skin="5"] .phone{border-radius:10px}
+.skinhost[data-skin="5"] .srow,.skinhost[data-skin="5"] .daycol,.skinhost[data-skin="5"] .gapc,.skinhost[data-skin="5"] .phases button,.skinhost[data-skin="5"] .btn,.skinhost[data-skin="5"] .rescue{border-radius:6px}
+.skinhost[data-skin="5"] .srow{border-left-width:5px}
+.skinhost[data-skin="5"] .shead .nm{font-size:.93rem;font-weight:700}
+.skinhost[data-skin="5"] .fav{font-size:.95rem;padding:9px 3px 9px 9px}
+.skinhost[data-skin="5"] .stitle{padding:9px 9px 9px 6px}
+.skinhost[data-skin="5"] .sc button{font-size:.82rem;padding:6px 10px;font-weight:700}
+.skinhost[data-skin="5"] .chip{font-size:.79rem;padding:5px 11px;border-width:2px}
+.skinhost[data-skin="5"] .phases button{font-size:.86rem}
+.skinhost[data-skin="5"] .btn{font-size:.88rem;padding:12px 6px}
+.skinhost[data-skin="5"] .hint,.skinhost[data-skin="5"] .gapc .gt{font-size:.8rem}
+.skinhost[data-skin="5"] .gapc .gs,.skinhost[data-skin="5"] .dl,.skinhost[data-skin="5"] .vh,.skinhost[data-skin="5"] .shead .mt{font-size:.72rem}
+.skinhost[data-skin="5"] .tot{font-size:.79rem}
+.skinhost[data-skin="5"] .tot b{font-size:.96rem}
+.skinhost[data-skin="5"] .ev .et{font-size:.7rem}
+.skinhost[data-skin="5"] .ev .ee{font-size:.62rem}
+.skinhost[data-skin="5"] .axc .tk{font-size:.66rem}
+.skinhost[data-skin="5"] .sc button,.skinhost[data-skin="5"] .chip,.skinhost[data-skin="5"] .axc .tk,.skinhost[data-skin="5"] .ev .ee,.skinhost[data-skin="5"] .tot{font-variant-numeric:tabular-nums}
+
+/* ベースCSSで直書きだった色をトークン化して差し替える。
+   [data-skin] を噛ませて :root[data-theme] 側と詳細度を並べ、後勝ちにする。 */
+.skinhost[data-skin] .fav[aria-pressed="true"]{color:var(--star)}
+.skinhost[data-skin] .rescue{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-fg)}
+.skinhost[data-skin] .warnq{color:var(--warn-fg)}
+.skinhost[data-skin] .chip .lc{color:var(--warn-fg)}
+.skinhost[data-skin] .phone{background:var(--bg);color:var(--ink);font-family:var(--font-ui)}
+</style>
+
+<div class="swrap">
+  <header class="hero">
+    <h1>見た目とフォント 5案</h1>
+    <p>中身・画面幅・初期状態はすべて同じ。変えたのは色とタイポと形だけです。5案とも実データで動きます。</p>
+  </header>
+
+  <div class="note">
+    <b>共通で決めていること</b>
+    <ul>
+      <li><b>色相＝会場</b>、<b>濃さ＝優先度</b>。会場を色で見分け、大事さは濃さで見分ける</li>
+      <li><b>日本語のWebフォントは埋め込めない</b>（数MBあり、Artifactは外部読み込みも塞がれる）。5案とも端末に入っている書体を使う。差が出るのは <b>系統の優先順・太さの使い方・数字の書体・大きさと字間</b> の4点</li>
+      <li>この見本では案ごとの見た目を固定表示にしています。採用案には端末のダーク設定に沿うダーク版を別途作ります（案2はダーク一本の設計）</li>
+    </ul>
+  </div>
+
+  <div class="grid">
+
+  <section class="card">
+    <div class="chead">
+      <h2><span class="n">案1</span>掲示板</h2>
+      <p>会場の壁に貼ってある表そのもの。飾りを引いて、時刻だけがはっきり立つ。</p>
+      <div class="meta">
+        <span><b>書体</b> ヒラギノ角ゴ／数字は等幅</span>
+        <span><b>引き換え</b> 地味。楽しさや高揚感はまったく出ない。</span>
+      </div>
+      <div class="sw" aria-hidden="true">
+        <i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--ink)"></i><i style="background:var(--v-hallHigh)"></i><i style="background:var(--v-room2f)"></i><i style="background:var(--v-hall2f)"></i>
+      </div>
+    </div>
+    <div class="skinhost" data-skin="1">
+      <div id="stage1"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="chead">
+      <h2><span class="n">案2</span>暗室</h2>
+      <p>会場は暗い。眩しくない地の上で、会場の色だけがほのかに光る。</p>
+      <div class="meta">
+        <span><b>書体</b> ヒラギノ角ゴ／数字は等幅</span>
+        <span><b>引き換え</b> ダーク一本の設計。明るい屋外では見えにくい。</span>
+      </div>
+      <div class="sw" aria-hidden="true">
+        <i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--ink)"></i><i style="background:var(--v-hallHigh)"></i><i style="background:var(--v-room2f)"></i><i style="background:var(--v-hall2f)"></i>
+      </div>
+    </div>
+    <div class="skinhost" data-skin="2">
+      <div id="stage2"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="chead">
+      <h2><span class="n">案3</span>紙の栞</h2>
+      <p>謎解きは本の側の遊び。見出しだけ明朝にして、しおりのような落ち着きを出す。</p>
+      <div class="meta">
+        <span><b>書体</b> 見出し=明朝／本文=角ゴ／数字=Georgia</span>
+        <span><b>引き換え</b> 明朝が入っていない端末では角ゴに落ちて、案1とほぼ同じ見た目になる。字幅も広く、細い画面ではタイトルが少し切れる。</span>
+      </div>
+      <div class="sw" aria-hidden="true">
+        <i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--ink)"></i><i style="background:var(--v-hallHigh)"></i><i style="background:var(--v-room2f)"></i><i style="background:var(--v-hall2f)"></i>
+      </div>
+    </div>
+    <div class="skinhost" data-skin="3">
+      <div id="stage3"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="chead">
+      <h2><span class="n">案4</span>フェスのポスター</h2>
+      <p>公式のタイムテーブルと地続きに見せる。同じ祭りの持ち物だと一目でわかる。</p>
+      <div class="meta">
+        <span><b>書体</b> 丸ゴシック／数字は幾何学サンセリフ</span>
+        <span><b>引き換え</b> 色数が多く、会場色と地の色が競る。時刻の読み取りは案1に劣る。</span>
+      </div>
+      <div class="sw" aria-hidden="true">
+        <i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--ink)"></i><i style="background:var(--v-hallHigh)"></i><i style="background:var(--v-room2f)"></i><i style="background:var(--v-hall2f)"></i>
+      </div>
+    </div>
+    <div class="skinhost" data-skin="4">
+      <div id="stage4"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="chead">
+      <h2><span class="n">案5</span>大きく太く</h2>
+      <p>歩きながら、急ぎながら見る前提。字を大きく、当たり判定を広く、色は最大コントラスト。</p>
+      <div class="meta">
+        <span><b>書体</b> BIZ UDPゴシック／数字も同じ</span>
+        <span><b>引き換え</b> 1画面に入る情報が減る。スクロールが増える。</span>
+      </div>
+      <div class="sw" aria-hidden="true">
+        <i style="background:var(--bg)"></i><i style="background:var(--surface)"></i><i style="background:var(--ink)"></i><i style="background:var(--v-hallHigh)"></i><i style="background:var(--v-room2f)"></i><i style="background:var(--v-hall2f)"></i>
+      </div>
+    </div>
+    <div class="skinhost" data-skin="5">
+      <div id="stage5"></div>
+    </div>
+  </section>
+  </div>
+
+  <p class="foot">触って比べられます。気になった案の番号を教えてください。</p>
+</div>
+
+<script>
+(function () {
+"use strict";
+
+/* ===== shows.js ===== */
+// algoフェス2026 の公演データ。
+//
+// 出典: 公式タイムスケジュール画像（9/12 Sat / 9/13 Sun）と escape.id のイベントページ。
+// 所要時間・料金・人数・全時間枠は画像から読み取り、所要時間と各枠の長さが
+// 一致することを1枠ずつ検算済み。
+//
+// price は表記どおりの金額。unit が "group" のものは1人あたりではなく1回あたり。
+
+const FES = {
+  title: "algoフェス2026",
+  place: "街ハック！本社",
+  days: [
+    { id: "09-12", label: "9/12", weekday: "土" },
+    { id: "09-13", label: "9/13", weekday: "日" },
+  ],
+};
+
+const VENUES = {
+  hallHigh: { label: "11・12Fホール" },
+  room2f: { label: "2Fルーム" },
+  hall2f: { label: "2Fホール" },
+};
+
+/** [start, end] の並びから slots を組み立てる小さなヘルパー。 */
+const on = (day, pairs) => pairs.map(([start, end]) => ({ day, start, end }));
+
+const SHOWS = [
+  // ---------------------------------------------------------- 11・12Fホール
+  {
+    id: "genkai",
+    title: "ゲンカイ・コウカイ・モモタロウ",
+    venue: "hallHigh",
+    durationMin: 110,
+    people: "1〜4人",
+    price: 3000,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [["13:10", "15:00"], ["15:40", "17:30"], ["18:10", "20:00"]]),
+      ...on("09-13", [["10:00", "11:50"], ["12:45", "14:35"], ["15:30", "17:20"], ["18:10", "20:00"]]),
+    ],
+  },
+  {
+    id: "innocent-girl",
+    title: "Innocent Girl Inside the Box",
+    venue: "hallHigh",
+    durationMin: 130,
+    people: "1〜4人",
+    price: 3200,
+    unit: "person",
+    priceNote: "当日 ¥3,500",
+    verified: true,
+    slots: [
+      ...on("09-12", [["13:10", "15:20"], ["18:10", "20:20"]]),
+      ...on("09-13", [["10:00", "12:10"], ["12:45", "14:55"], ["15:30", "17:40"], ["18:10", "20:20"]]),
+    ],
+  },
+  {
+    id: "otose",
+    title: "落とせ！",
+    venue: "hallHigh",
+    durationMin: 130,
+    people: "1〜4人",
+    price: 3500,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [["13:10", "15:20"], ["18:10", "20:20"]]),
+      ...on("09-13", [["10:00", "12:10"], ["12:45", "14:55"], ["15:30", "17:40"], ["18:10", "20:20"]]),
+    ],
+  },
+
+  // -------------------------------------------------------------- 2Fルーム
+  {
+    id: "room201",
+    title: "二〇一号室",
+    venue: "room2f",
+    durationMin: 50,
+    people: "1〜4人",
+    price: 2000,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [
+        ["13:10", "14:00"], ["14:20", "15:10"], ["15:30", "16:20"],
+        ["17:00", "17:50"], ["18:10", "19:00"],
+      ]),
+      ...on("09-13", [
+        ["10:10", "11:00"], ["11:20", "12:10"], ["12:30", "13:20"], ["14:00", "14:50"],
+        ["15:10", "16:00"], ["16:20", "17:10"], ["17:30", "18:20"], ["18:40", "19:30"],
+      ]),
+    ],
+  },
+  {
+    id: "kuuki-yomi",
+    title: "リアル空気読み。",
+    venue: "room2f",
+    durationMin: 30,
+    people: "1〜4人",
+    price: 2000,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [
+        ["13:10", "13:40"], ["14:20", "14:50"], ["15:10", "15:40"], ["16:00", "16:30"],
+        ["17:00", "17:30"], ["17:50", "18:20"], ["18:40", "19:10"], ["19:30", "20:00"],
+      ]),
+      ...on("09-13", [
+        ["10:10", "10:40"], ["11:10", "11:40"], ["12:00", "12:30"], ["12:50", "13:20"],
+        ["13:40", "14:10"], ["14:30", "15:00"], ["15:40", "16:10"], ["16:30", "17:00"],
+        ["17:20", "17:50"], ["18:10", "18:40"], ["19:00", "19:30"],
+      ]),
+    ],
+  },
+  {
+    id: "shiken-10min",
+    title: "試験開始まで残り10分",
+    venue: "room2f",
+    durationMin: 35,
+    people: "1〜3人",
+    price: 1500,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [
+        ["13:10", "13:45"], ["14:00", "14:35"], ["14:45", "15:20"], ["15:30", "16:05"],
+        ["17:00", "17:35"], ["17:45", "18:20"], ["18:40", "19:15"], ["19:25", "20:00"],
+      ]),
+      ...on("09-13", [
+        ["10:10", "10:45"], ["10:55", "11:30"], ["11:40", "12:15"], ["12:25", "13:00"],
+        ["14:00", "14:35"], ["14:45", "15:20"], ["15:45", "16:20"], ["16:30", "17:05"],
+        ["17:25", "18:00"], ["18:10", "18:45"], ["18:55", "19:30"],
+      ]),
+    ],
+  },
+  {
+    id: "gobousei",
+    title: "ある五芒星の解読",
+    venue: "room2f",
+    durationMin: 90,
+    people: "3〜4人",
+    price: 2500,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [["13:10", "14:40"], ["14:55", "16:25"], ["16:40", "18:10"], ["18:25", "19:55"]]),
+      ...on("09-13", [
+        ["10:10", "11:40"], ["11:55", "13:25"], ["14:30", "16:00"],
+        ["16:15", "17:45"], ["18:00", "19:30"],
+      ]),
+    ],
+  },
+  {
+    id: "oitoke",
+    title: "OITOKE!",
+    venue: "room2f",
+    durationMin: 45,
+    people: "1〜2人",
+    price: 2000,
+    unit: "group",
+    verified: true,
+    slots: [
+      ...on("09-12", [
+        ["13:15", "14:00"], ["14:10", "14:55"], ["15:05", "15:50"], ["16:00", "16:45"],
+        ["16:55", "17:40"], ["17:50", "18:35"], ["18:45", "19:30"],
+      ]),
+      // 9/13の最終回 18:30-19:20 だけ50分（他は45分）。原本どおりで正しいことを確認済み。
+      ...on("09-13", [
+        ["10:20", "11:05"], ["11:15", "12:00"], ["12:10", "12:55"], ["13:05", "13:50"],
+        ["14:00", "14:45"], ["14:55", "15:40"], ["15:50", "16:35"], ["16:45", "17:30"],
+        ["17:40", "18:25"], ["18:30", "19:20"],
+      ]),
+    ],
+  },
+  {
+    id: "change-challenge",
+    title: "CHANGE CHAlleNGE",
+    venue: "room2f",
+    durationMin: 60,
+    people: "2〜4人",
+    price: 2000,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [
+        ["13:10", "14:10"], ["14:30", "15:30"], ["15:50", "16:50"],
+        ["17:10", "18:10"], ["18:30", "19:30"],
+      ]),
+      ...on("09-13", [
+        ["10:10", "11:10"], ["11:30", "12:30"], ["12:50", "13:50"], ["14:10", "15:10"],
+        ["15:30", "16:30"], ["16:50", "17:50"], ["18:10", "19:10"],
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------- 2Fホール
+  {
+    id: "timer-castle",
+    title: "タイマー城からの脱出",
+    venue: "hall2f",
+    durationMin: 30,
+    people: "1〜4人",
+    price: 1500,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [
+        ["13:15", "13:45"], ["13:55", "14:25"], ["14:45", "15:15"], ["15:25", "15:55"],
+        ["16:35", "17:05"], ["17:15", "17:45"], ["18:00", "18:30"], ["18:40", "19:10"],
+        ["19:20", "19:50"],
+      ]),
+      ...on("09-13", [
+        ["10:15", "10:45"], ["10:55", "11:25"], ["11:40", "12:10"], ["12:20", "12:50"],
+        ["14:30", "15:00"], ["15:10", "15:40"], ["15:55", "16:25"], ["16:35", "17:05"],
+        ["17:40", "18:10"], ["18:20", "18:50"], ["19:00", "19:30"],
+      ]),
+    ],
+  },
+  {
+    id: "bombs",
+    title: "BOMBS",
+    venue: "hall2f",
+    durationMin: 80,
+    people: "1〜4人",
+    price: 2500,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [["13:10", "14:30"], ["15:00", "16:20"], ["16:50", "18:10"], ["18:30", "19:50"]]),
+      ...on("09-13", [
+        ["10:10", "11:30"], ["12:00", "13:20"], ["14:10", "15:30"],
+        ["16:00", "17:20"], ["17:50", "19:10"],
+      ]),
+    ],
+  },
+  {
+    id: "destrain",
+    title: "デストレインからの救済",
+    venue: "hall2f",
+    durationMin: 100,
+    people: "3〜4人",
+    price: 2500,
+    unit: "person",
+    verified: true,
+    slots: [
+      ...on("09-12", [["13:10", "14:50"], ["15:30", "17:10"], ["17:50", "19:30"]]),
+      ...on("09-13", [["10:10", "11:50"], ["12:30", "14:10"], ["15:20", "17:00"], ["17:40", "19:20"]]),
+    ],
+  },
+];
+
+/* ===== planner.js ===== */
+// はしごプランの探索ロジック。DOM には一切触れない純粋関数だけを置く。
+
+const RANK_KEYS = ["must", "want", "maybe"];
+
+/** ビットマスクDPの上限。2^18 = 262144 マスクまで。フェスの公演数(12)には十分な余裕がある。 */
+const MAX_SELECTABLE_SHOWS = 18;
+
+/** "HH:MM" を 0時からの分に変換する。 */
+function toMinutes(hhmm) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm ?? "").trim());
+  if (!m) throw new Error(`時刻の形式が不正です: ${hhmm}`);
+  const h = Number(m[1]);
+  const mi = Number(m[2]);
+  if (h > 23 || mi > 59) throw new Error(`時刻の範囲が不正です: ${hhmm}`);
+  return h * 60 + mi;
+}
+
+/** 分を "H:MM" 表記に戻す（テキスト出力用）。 */
+function toHHMM(min) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h}:${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * prev の直後に next を入れられるか。
+ * あきが 0 分ちょうど（前の終了と次の開始が同時刻）は、バッファ0でも繋がらない扱いにする。
+ */
+function canFollow(prev, next, bufferMin = 0) {
+  const gap = toMinutes(next.start) - toMinutes(prev.end);
+  return gap > 0 && gap >= bufferMin;
+}
+
+/** あき(分)がバッファ条件を満たすか。 */
+function gapOk(gap, bufferMin) {
+  return gap > 0 && gap >= bufferMin;
+}
+
+/** 対象公演の、条件に合う枠だけを集める。 */
+function collectSlots(show, { day, minStartMin, maxEndMin }) {
+  const out = [];
+  for (const slot of show.slots ?? []) {
+    if (day && slot.day !== day) continue;
+    const startMin = toMinutes(slot.start);
+    const endMin = toMinutes(slot.end);
+    if (startMin < minStartMin || endMin > maxEndMin) continue;
+    out.push({
+      showId: show.id,
+      title: show.title,
+      venue: show.venue,
+      day: slot.day,
+      start: slot.start,
+      end: slot.end,
+      startMin,
+      endMin,
+    });
+  }
+  out.sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
+  return out;
+}
+
+function normalizeOpts(opts = {}) {
+  return {
+    day: opts.day ?? null,
+    bufferMin: opts.bufferMin ?? 10,
+    minStartMin: opts.earliestStart == null ? -Infinity : toMinutes(opts.earliestStart),
+    maxEndMin: opts.latestEnd == null ? Infinity : toMinutes(opts.latestEnd),
+    maxPlans: opts.maxPlans ?? 20,
+  };
+}
+
+/**
+ * 成立するプランを探して、良い順に返す。
+ *
+ * 「どの公演を観るか」の集合ごとにビットマスクDPで最小終了時刻を求める。
+ * 同じ公演の組み合わせは1プランにまとめるので、結果が似たものだらけにならない。
+ *
+ * @param shows 公演の配列（shows.js の SHOWS 形式）
+ * @param ranks { showId: "must" | "want" | "maybe" }
+ * @returns { plans, tooManyShows, feasibleCount }
+ */
+function findPlans(shows, ranks, opts = {}) {
+  const o = normalizeOpts(opts);
+  const selected = (shows ?? []).filter((s) => RANK_KEYS.includes(ranks?.[s.id]));
+
+  if (selected.length === 0) {
+    return { plans: [], tooManyShows: false, feasibleCount: 0 };
+  }
+  if (selected.length > MAX_SELECTABLE_SHOWS) {
+    return { plans: [], tooManyShows: true, feasibleCount: 0 };
+  }
+
+  const slotsByShow = selected.map((s) => collectSlots(s, o));
+  const n = selected.length;
+  const { best, from, size } = buildDP(slotsByShow, o.bufferMin);
+
+  // 極大な集合（これ以上どの公演も足せない）だけをプランにする。
+  const plans = [];
+  let feasibleCount = 0;
+  for (let mask = 1; mask < size; mask++) {
+    if (best[mask] === Infinity) continue;
+    feasibleCount++;
+
+    let maximal = true;
+    for (let k = 0; k < n && maximal; k++) {
+      const bit = 1 << k;
+      if (mask & bit) continue;
+      if (best[mask | bit] < Infinity) maximal = false;
+    }
+    if (!maximal) continue;
+
+    const order = reconstructOrder(mask, from);
+    const slots = compact(order, slotsByShow, from, mask, best, o.bufferMin);
+    plans.push(buildPlan(order, slots, selected, ranks));
+  }
+
+  plans.sort(comparePlans);
+  return { plans: plans.slice(0, o.maxPlans), tooManyShows: false, feasibleCount };
+}
+
+/**
+ * 公演ごとの候補枠から、部分集合ごとの「ありうる最も早い終了時刻」を求める。
+ *
+ * best[mask] が Infinity なら、その組み合わせは1日に収まらない。
+ * 最も早く終わる組み方を持てば、そのあとに足せるものは必ず足せるので、この値だけで足りる。
+ */
+function buildDP(slotsByShow, bufferMin) {
+  const n = slotsByShow.length;
+  const size = 1 << n;
+  const best = new Float64Array(size).fill(Infinity);
+  const from = new Array(size).fill(null);
+  best[0] = -Infinity;
+
+  for (let mask = 0; mask < size; mask++) {
+    const cur = best[mask];
+    if (cur === Infinity) continue;
+    for (let k = 0; k < n; k++) {
+      const bit = 1 << k;
+      if (mask & bit) continue;
+
+      let pick = null;
+      for (const slot of slotsByShow[k]) {
+        if (!gapOk(slot.startMin - cur, bufferMin)) continue;
+        if (pick === null || slot.endMin < pick.endMin) pick = slot;
+      }
+      if (pick === null) continue;
+
+      const next = mask | bit;
+      if (pick.endMin < best[next]) {
+        best[next] = pick.endMin;
+        from[next] = { prevMask: mask, showIndex: k };
+      }
+    }
+  }
+  return { best, from, size, n };
+}
+
+/** from を辿って、mask の公演を観る順（時系列）の showIndex 配列を返す。 */
+function reconstructOrder(mask, from) {
+  const order = [];
+  let cur = mask;
+  while (cur !== 0) {
+    const step = from[cur];
+    order.push(step.showIndex);
+    cur = step.prevMask;
+  }
+  order.reverse();
+  return order;
+}
+
+/**
+ * DP は「最も早く終わる」枠を選ぶので、途中に無駄なあきが残ることがある。
+ * 最後の公演は DP の選択を保ったまま、手前の公演を後ろへ寄せて待ち時間を詰める。
+ */
+function compact(order, slotsByShow, from, mask, best, bufferMin) {
+  const dpSlots = dpSlotsOf(order, slotsByShow, best, from, mask, bufferMin);
+  if (order.length <= 1) return dpSlots;
+
+  const result = new Array(order.length);
+  result[order.length - 1] = dpSlots[order.length - 1];
+  let limit = result[order.length - 1].startMin;
+
+  for (let i = order.length - 2; i >= 0; i--) {
+    let pick = null;
+    for (const slot of slotsByShow[order[i]]) {
+      if (!gapOk(limit - slot.endMin, bufferMin)) continue;
+      if (pick === null || slot.startMin > pick.startMin) pick = slot;
+    }
+    if (pick === null) return dpSlots; // 詰められないときは DP の結果をそのまま使う
+    result[i] = pick;
+    limit = pick.startMin;
+  }
+  return result;
+}
+
+/** DP が実際に選んだ枠を、前から順に引き直す。 */
+function dpSlotsOf(order, slotsByShow, best, from, mask, bufferMin) {
+  // from はマスク単位でしか持っていないので、前から貪欲に引き直す（DP と同じ選び方）。
+  const slots = [];
+  let cur = -Infinity;
+  for (const k of order) {
+    let pick = null;
+    for (const slot of slotsByShow[k]) {
+      if (!gapOk(slot.startMin - cur, bufferMin)) continue;
+      if (pick === null || slot.endMin < pick.endMin) pick = slot;
+    }
+    slots.push(pick);
+    cur = pick.endMin;
+  }
+  return slots;
+}
+
+function buildPlan(order, slots, selected, ranks) {
+  const items = order.map((k, i) => {
+    const slot = slots[i];
+    const next = slots[i + 1];
+    return {
+      showId: selected[k].id,
+      title: selected[k].title,
+      venue: selected[k].venue,
+      price: selected[k].price ?? 0,
+      unit: selected[k].unit ?? "person",
+      rank: ranks[selected[k].id],
+      day: slot.day,
+      start: slot.start,
+      end: slot.end,
+      startMin: slot.startMin,
+      endMin: slot.endMin,
+      gapAfterMin: next ? next.startMin - slot.endMin : null,
+    };
+  });
+
+  const score = {
+    must: 0, want: 0, maybe: 0, count: items.length,
+    idleMin: 0, spanMin: 0,
+    // 1人あたりの料金と、1組あたりの料金は足し合わせられないので分けて持つ
+    pricePerPerson: 0, priceGroup: 0,
+  };
+  for (const it of items) {
+    score[it.rank]++;
+    if (it.unit === "group") score.priceGroup += it.price;
+    else score.pricePerPerson += it.price;
+  }
+  for (let i = 1; i < items.length; i++) score.idleMin += items[i].startMin - items[i - 1].endMin;
+  if (items.length) score.spanMin = items[items.length - 1].endMin - items[0].startMin;
+
+  return {
+    key: items.map((i) => i.showId).sort().join("+"),
+    items,
+    score,
+  };
+}
+
+function comparePlans(a, b) {
+  return (
+    b.score.must - a.score.must ||
+    b.score.want - a.score.want ||
+    b.score.maybe - a.score.maybe ||
+    a.score.idleMin - b.score.idleMin ||
+    a.score.spanMin - b.score.spanMin ||
+    a.items[0].startMin - b.items[0].startMin
+  );
+}
+
+/* ------------------------------------------------------------------
+   ここから下は「自分で置いた予定を前提に、残りを埋める」ための関数。
+   fixed には置いた公演も休憩も同じ形で入れる:
+     { day, start, end, showId?, label? }
+   showId があるものはその公演を配置済みとみなす。無いものは単に時間を塞ぐ。
+   ------------------------------------------------------------------ */
+
+/** その枠が、固定された予定のどれかとぶつかるか。 */
+function hitsFixed(slot, fixedOnDay, bufferMin) {
+  return fixedOnDay.some((f) => {
+    const fa = toMinutes(f.start);
+    const fb = toMinutes(f.end);
+    const after = gapOk(slot.startMin - fb, bufferMin);
+    const before = gapOk(fa - slot.endMin, bufferMin);
+    return !after && !before;
+  });
+}
+
+/**
+ * まだ置いていない公演について、いま置ける枠を日をまたいで列挙する。
+ *
+ * options が1件だけなら「ここを逃すともう入らない」ということ。UIで警告に使う。
+ */
+function placementOptions(shows, fixed = [], opts = {}) {
+  const { days = [], bufferMin = 10 } = opts;
+  const placed = new Set(fixed.filter((f) => f.showId).map((f) => f.showId));
+
+  return (shows ?? [])
+    .filter((s) => !placed.has(s.id))
+    .map((show) => {
+      const options = [];
+      for (const day of days) {
+        const fixedOnDay = fixed.filter((f) => f.day === day);
+        for (const slot of collectSlots(show, { day, minStartMin: -Infinity, maxEndMin: Infinity })) {
+          if (!hitsFixed(slot, fixedOnDay, bufferMin)) options.push(slot);
+        }
+      }
+      return { showId: show.id, title: show.title, venue: show.venue, options };
+    });
+}
+
+/** その日の予定を並べたときの、あいだの空き時間の合計。 */
+function totalIdle(entries) {
+  const s = [...entries].sort((a, b) => a.startMin - b.startMin);
+  let idle = 0;
+  for (let i = 1; i < s.length; i++) idle += s[i].startMin - s[i - 1].endMin;
+  return idle;
+}
+
+/** その枠が、並んでいる予定のどれともぶつからないか。 */
+function freeAgainst(slot, entries, bufferMin) {
+  return entries.every(
+    (e) => gapOk(slot.startMin - e.endMin, bufferMin) || gapOk(e.startMin - slot.endMin, bufferMin),
+  );
+}
+
+/**
+ * 入れる公演はそのままに、それぞれを別の回へ振り替えて待ち時間を減らす。
+ *
+ * 何を入れるかは部分集合DPで決めたあとなので、ここでは「どの回にするか」だけを動かす。
+ * 1つずつ最良の回へ移すのを、改善が止まるまで繰り返す。
+ */
+function minimizeIdle(fixedOnDay, added, slotsByShowId, bufferMin) {
+  const cur = added.map((a) => ({ ...a }));
+  for (let pass = 0; pass < 4; pass++) {
+    let improved = false;
+    for (let i = 0; i < cur.length; i++) {
+      const others = [...fixedOnDay, ...cur.filter((_, j) => j !== i)];
+      let bestIdle = totalIdle([...others, cur[i]]);
+      let bestSlot = null;
+      for (const slot of slotsByShowId.get(cur[i].showId) ?? []) {
+        if (slot.startMin === cur[i].startMin) continue;
+        if (!freeAgainst(slot, others, bufferMin)) continue;
+        const idle = totalIdle([...others, slot]);
+        if (idle < bestIdle) {
+          bestIdle = idle;
+          bestSlot = slot;
+        }
+      }
+      if (bestSlot) {
+        cur[i] = {
+          ...cur[i],
+          start: bestSlot.start,
+          end: bestSlot.end,
+          startMin: bestSlot.startMin,
+          endMin: bestSlot.endMin,
+        };
+        improved = true;
+      }
+    }
+    if (!improved) break;
+  }
+  return cur;
+}
+
+/**
+ * 自分で置いた予定を動かさずに、残りの公演を詰める。
+ *
+ * 日ごとに部分集合DPを作ってから、どの公演をどちらの日に回すかを部分集合の
+ * 組み合わせで決める。土曜のこの枠を逃すと日曜にも入らない、が正しく効くようにするため、
+ * 片方ずつ貪欲に埋めるのではなく両日を同時に見る。
+ *
+ * 優先順位は「お気に入りの数 → 全体の数」。何を入れるかが決まったあと、
+ * 待ち時間が短くなる回へ振り替える。
+ *
+ * @param opts.favoriteIds 先に入れたい公演
+ * @param opts.onlyFavorites お気に入り以外を候補にしない
+ * @param opts.windows { [day]: { from, to } } その日に入れてよい時間帯
+ */
+function suggestFills(shows, fixed = [], opts = {}) {
+  const { days = [], bufferMin = 10, favoriteIds = [], onlyFavorites = false, windows = {} } = opts;
+  const placed = new Set(fixed.filter((f) => f.showId).map((f) => f.showId));
+  const favs = new Set(favoriteIds);
+  let targets = (shows ?? []).filter((s) => !placed.has(s.id));
+  if (onlyFavorites) targets = targets.filter((s) => favs.has(s.id));
+
+  const none = { added: [], tooManyShows: false, idleByDay: {} };
+  if (targets.length === 0 || days.length === 0) return none;
+  if (targets.length > MAX_SELECTABLE_SHOWS) return { added: [], tooManyShows: true, idleByDay: {} };
+
+  // 日ごとに、固定された予定とぶつからない枠だけを候補にしてDPを作る。
+  // 個別にぶつからない枠どうしが繋がっていれば、固定ぶんと合わせても必ず成立する。
+  const dps = days.map((day) => {
+    const fixedOnDay = fixed.filter((f) => f.day === day);
+    const w = windows[day] ?? {};
+    const bounds = {
+      day,
+      minStartMin: w.from == null || w.from === "" ? -Infinity : toMinutes(w.from),
+      maxEndMin: w.to == null || w.to === "" ? Infinity : toMinutes(w.to),
+    };
+    const slotsByShow = targets.map((s) =>
+      collectSlots(s, bounds).filter((slot) => !hitsFixed(slot, fixedOnDay, bufferMin)),
+    );
+    return { day, slotsByShow, ...buildDP(slotsByShow, bufferMin) };
+  });
+
+  // どの公演をどの日に回すか。reach[mask] = その集合を今までの日で全部さばけるか。
+  const size = 1 << targets.length;
+  let reach = new Uint8Array(size);
+  reach[0] = 1;
+  const picks = [];
+
+  for (const dp of dps) {
+    const next = new Uint8Array(size);
+    const pick = new Int32Array(size).fill(-1);
+    for (let mask = 0; mask < size; mask++) {
+      for (let sub = mask; ; sub = (sub - 1) & mask) {
+        if (reach[mask ^ sub] && dp.best[sub] < Infinity) {
+          next[mask] = 1;
+          pick[mask] = sub;
+          break;
+        }
+        if (sub === 0) break;
+      }
+    }
+    reach = next;
+    picks.push(pick);
+  }
+
+  // お気に入りの数を先に、次に全体の数を最大にする
+  let favMask = 0;
+  targets.forEach((s, k) => {
+    if (favs.has(s.id)) favMask |= 1 << k;
+  });
+
+  let bestMask = 0;
+  let bestScore = 0;
+  for (let mask = 1; mask < size; mask++) {
+    if (!reach[mask]) continue;
+    const score = popcount(mask & favMask) * 1000 + popcount(mask);
+    if (score > bestScore) {
+      bestScore = score;
+      bestMask = mask;
+    }
+  }
+  if (bestMask === 0) return none;
+
+  // 日ごとの担当を後ろから割り戻す
+  const perDay = new Array(dps.length).fill(0);
+  let rest = bestMask;
+  for (let i = dps.length - 1; i >= 0; i--) {
+    perDay[i] = picks[i][rest];
+    rest ^= perDay[i];
+  }
+
+  const added = [];
+  const idleByDay = {};
+  dps.forEach((dp, i) => {
+    const mask = perDay[i];
+    const fixedOnDay = fixed
+      .filter((f) => f.day === dp.day)
+      .map((f) => ({ startMin: toMinutes(f.start), endMin: toMinutes(f.end) }));
+
+    if (!mask) {
+      idleByDay[dp.day] = totalIdle(fixedOnDay);
+      return;
+    }
+
+    const order = reconstructOrder(mask, dp.from);
+    const slots = compact(order, dp.slotsByShow, dp.from, mask, dp.best, bufferMin);
+    let dayAdds = order.map((k, j) => {
+      const show = targets[k];
+      const slot = slots[j];
+      return {
+        showId: show.id,
+        title: show.title,
+        venue: show.venue,
+        price: show.price ?? 0,
+        unit: show.unit ?? "person",
+        day: dp.day,
+        start: slot.start,
+        end: slot.end,
+        startMin: slot.startMin,
+        endMin: slot.endMin,
+      };
+    });
+
+    // 入れるものは変えずに、待ち時間が短くなる回へ振り替える
+    const slotsByShowId = new Map(order.map((k) => [targets[k].id, dp.slotsByShow[k]]));
+    dayAdds = minimizeIdle(fixedOnDay, dayAdds, slotsByShowId, bufferMin);
+
+    idleByDay[dp.day] = totalIdle([...fixedOnDay, ...dayAdds]);
+    added.push(...dayAdds);
+  });
+
+  added.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : a.startMin - b.startMin));
+  return { added, tooManyShows: false, idleByDay };
+}
+
+/**
+ * お気に入りが入らなくなったとき、置いてある公演を別の回へ移せば助かるかを探す。
+ *
+ * 休憩は動かさない（自分で置いた予定なので）。移す先は元の予定とぶつからない回だけ。
+ *
+ * @returns [{ showId, title, swaps: [{ showId, title, from, to, thenAt }] }]
+ */
+function rescueSuggestions(shows, fixed = [], favoriteIds = [], opts = {}) {
+  const { days = [], bufferMin = 10, maxSwaps = 3 } = opts;
+  const byId = new Map((shows ?? []).map((s) => [s.id, s]));
+  const placed = new Set(fixed.filter((f) => f.showId).map((f) => f.showId));
+
+  const optMap = new Map(
+    placementOptions(shows, fixed, { days, bufferMin }).map((o) => [o.showId, o.options]),
+  );
+  const blocked = favoriteIds.filter(
+    (id) => byId.has(id) && !placed.has(id) && (optMap.get(id)?.length ?? 0) === 0,
+  );
+  if (blocked.length === 0) return [];
+
+  /** その予定の並びで、show がどこかに入れるか。 */
+  const canStillFit = (show, trial) => {
+    for (const day of days) {
+      const onDay = trial.filter((f) => f.day === day);
+      for (const slot of collectSlots(show, { day, minStartMin: -Infinity, maxEndMin: Infinity })) {
+        if (!hitsFixed(slot, onDay, bufferMin)) return slot;
+      }
+    }
+    return null;
+  };
+
+  const movable = fixed.filter((f) => f.showId && byId.has(f.showId));
+
+  return blocked.map((id) => {
+    const target = byId.get(id);
+    const swaps = [];
+    for (const f of movable) {
+      if (swaps.length >= maxSwaps) break;
+      const moving = byId.get(f.showId);
+      const others = fixed.filter((g) => g !== f);
+      for (const alt of moving.slots) {
+        if (!days.includes(alt.day)) continue; // 参加しない日へは移さない
+        if (alt.day === f.day && alt.start === f.start) continue;
+        const altSlot = { startMin: toMinutes(alt.start), endMin: toMinutes(alt.end) };
+        if (hitsFixed(altSlot, others.filter((g) => g.day === alt.day), bufferMin)) continue;
+
+        const trial = [...others, { ...f, day: alt.day, start: alt.start, end: alt.end }];
+        const spot = canStillFit(target, trial);
+        if (!spot) continue;
+
+        swaps.push({
+          showId: f.showId,
+          title: moving.title,
+          from: { day: f.day, start: f.start, end: f.end },
+          to: { day: alt.day, start: alt.start, end: alt.end },
+          thenAt: { day: spot.day, start: spot.start, end: spot.end },
+        });
+        break; // 同じ公演で複数の移し先は出さない
+      }
+    }
+    return { showId: id, title: target.title, swaps };
+  });
+}
+
+function popcount(x) {
+  let c = 0;
+  while (x) {
+    x &= x - 1;
+    c++;
+  }
+  return c;
+}
+
+/**
+ * あきに入れられる公演の組み合わせを、入る数の多い順に返す。
+ *
+ * 判定は findPlans をそのまま使う。衝突の考え方が2本に分かれると必ずズレるため。
+ * afterMin は直前の公演の終了、beforeMin は直後の公演の開始（どちらも分、null で制限なし）。
+ *
+ * @returns findPlans と同じ形。plans[0] が一番多く入る組み合わせ。
+ */
+function fillGap(shows, opts = {}) {
+  const {
+    day = null,
+    bufferMin = 10,
+    afterMin = null,
+    beforeMin = null,
+    excludeIds = [],
+    maxPlans = 5,
+  } = opts;
+
+  const margin = Math.max(bufferMin, 1); // 0分乗り換えは認めない
+  const empty = { plans: [], tooManyShows: false, feasibleCount: 0 };
+
+  const lo = afterMin == null ? null : afterMin + margin;
+  const hi = beforeMin == null ? null : beforeMin - margin;
+  if (lo != null && (lo < 0 || lo > 1439)) return empty;
+  if (hi != null && (hi < 0 || hi > 1439)) return empty;
+  if (lo != null && hi != null && lo >= hi) return empty;
+
+  const exclude = new Set(excludeIds);
+  const targets = (shows ?? []).filter((s) => !exclude.has(s.id));
+  if (targets.length === 0) return empty;
+
+  const ranks = Object.fromEntries(targets.map((s) => [s.id, "want"]));
+  return findPlans(targets, ranks, {
+    day,
+    bufferMin,
+    maxPlans,
+    earliestStart: lo == null ? null : toHHMM(lo),
+    latestEnd: hi == null ? null : toHHMM(hi),
+  });
+}
+
+/**
+ * 必須が全部入らないときに、原因を名指しするための診断。
+ * @returns { pairs, noSlot } pairs はどの枠を選んでも両立しない必須ペア
+ */
+function diagnoseConflicts(shows, mustIds, opts = {}) {
+  const o = normalizeOpts(opts);
+  const byId = new Map((shows ?? []).map((s) => [s.id, s]));
+
+  const noSlot = [];
+  const usable = [];
+  for (const id of mustIds ?? []) {
+    const show = byId.get(id);
+    if (!show) continue;
+    const slots = collectSlots(show, o);
+    if (slots.length === 0) noSlot.push({ id: show.id, title: show.title });
+    else usable.push({ show, slots });
+  }
+
+  const pairs = [];
+  for (let i = 0; i < usable.length; i++) {
+    for (let j = i + 1; j < usable.length; j++) {
+      const A = usable[i];
+      const B = usable[j];
+      const compatible = A.slots.some((a) =>
+        B.slots.some(
+          (b) =>
+            gapOk(b.startMin - a.endMin, o.bufferMin) ||
+            gapOk(a.startMin - b.endMin, o.bufferMin),
+        ),
+      );
+      if (!compatible) {
+        pairs.push({
+          a: A.show.id,
+          b: B.show.id,
+          aTitle: A.show.title,
+          bTitle: B.show.title,
+        });
+      }
+    }
+  }
+
+  return { pairs, noSlot };
+}
+
+/** プランを共有用のプレーンテキストにする。 */
+function formatPlanAsText(plan, { dayLabel = "", venueLabels = {}, title = "はしごプラン" } = {}) {
+  const header = dayLabel ? `${title}｜${dayLabel}` : title;
+  const lines = [header, ""];
+
+  plan.items.forEach((it, i) => {
+    const venue = venueLabels[it.venue] ?? it.venue;
+    lines.push(`${it.start}-${it.end}  ${it.title}（${venue}）`);
+    if (i < plan.items.length - 1) {
+      lines.push(`　　↓ ${it.gapAfterMin}分あき`);
+    }
+  });
+
+  const money = [];
+  if (plan.score.pricePerPerson) money.push(`¥${plan.score.pricePerPerson.toLocaleString("ja-JP")}/人`);
+  if (plan.score.priceGroup) money.push(`¥${plan.score.priceGroup.toLocaleString("ja-JP")}/回`);
+  if (money.length) lines.push("", `公演の合計 ${money.join(" ＋ ")}（入場チケットは別）`);
+
+  return lines.join("\n");
+}
+window.__E = { SHOWS, VENUES, FES, suggestFills, placementOptions, rescueSuggestions, toMinutes };
+})();
+</script>
+<script>
+function boot(HOST_ID){
+
+const { SHOWS, VENUES, FES, suggestFills, placementOptions, rescueSuggestions, toMinutes } = window.__E;
+const BUFFER = 10;
+const ALL_DAYS = FES.days.map(d => d.id);
+const DAY_LABEL = Object.fromEntries(FES.days.map(d => [d.id, d.label + "(" + d.weekday + ")"]));
+const VENUE_ORDER = ["hallHigh", "room2f", "hall2f"];
+
+const yen = n => "¥" + n.toLocaleString("ja-JP");
+const hhmm = m => String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0");
+const vcol = v => "var(--v-" + v + ")";
+const byId = new Map(SHOWS.map(s => [s.id, s]));
+function el(t, c, x) { const e = document.createElement(t);
+  if (c) e.className = c; if (x != null) e.textContent = x; return e; }
+
+/* fixed が予定の唯一の状態。置いた公演も休憩も同じ形で持つ。 */
+const S = {
+  fixed: [{"day":"09-12","start":"13:10","end":"15:00","showId":"genkai"},{"day":"09-12","start":"15:10","end":"16:00","label":"休憩"},{"day":"09-12","start":"16:35","end":"17:05","showId":"timer-castle"},{"day":"09-12","start":"18:30","end":"19:30","showId":"change-challenge"},{"day":"09-13","start":"10:00","end":"12:10","showId":"innocent-girl"},{"day":"09-13","start":"12:30","end":"14:10","showId":"destrain"}], phase: 1, open: null, justAdded: new Set(),
+  favorites: new Set(["oitoke","kuuki-yomi"]), windows: {}, onlyFav: false,
+  going: new Set(ALL_DAYS), // 参加する日
+};
+const winOf = day => S.windows[day] ?? { from: "", to: "" };
+const DAYS = () => ALL_DAYS.filter(d => S.going.has(d));
+
+const placedIds = () => new Set(S.fixed.filter(f => f.showId).map(f => f.showId));
+const onDay = day => S.fixed.filter(f => f.day === day)
+  .map(f => ({ ...f, a: toMinutes(f.start), b: toMinutes(f.end) }))
+  .sort((x, y) => x.a - y.a);
+
+const optionsIndex = () => new Map(
+  placementOptions(SHOWS, S.fixed, { days: DAYS(), bufferMin: BUFFER }).map(p => [p.showId, p.options]));
+
+/* 全日の時間軸をそろえる */
+const ALL = SHOWS.flatMap(s => s.slots.map(x => [toMinutes(x.start), toMinutes(x.end)]));
+const T0 = Math.floor(Math.min(...ALL.map(x => x[0])) / 60) * 60;
+const T1 = Math.ceil(Math.max(...ALL.map(x => x[1])) / 60) * 60;
+const PPM = 1.02;
+
+/* ---------------- 上ペイン: 段階1 押さえる ---------------- */
+function phase1(host) {
+  // 参加する日
+  const go = el("div", "godays");
+  go.appendChild(el("span", "lbl", "行く日"));
+  for (const d of ALL_DAYS) {
+    const b = el("button", null, DAY_LABEL[d]);
+    b.setAttribute("aria-pressed", String(S.going.has(d)));
+    b.onclick = () => {
+      if (S.going.has(d)) {
+        if (S.going.size === 1) return; // 全部消させない
+        S.going.delete(d);
+        S.fixed = S.fixed.filter(f => f.day !== d); // 行かない日の予定は落とす
+      } else {
+        S.going.add(d);
+      }
+      render();
+    };
+    go.appendChild(b);
+  }
+  host.appendChild(go);
+
+  host.appendChild(el("p", "hint",
+    "★を付けた公演は「埋める」で先に入れます。ひらいて参加する回を選ぶと、その回で確定します。"));
+
+  // お気に入りが入らなくなったら、入れ替え案を出す
+  for (const r of rescueSuggestions(SHOWS, S.fixed, [...S.favorites], { days: DAYS(), bufferMin: BUFFER })) {
+    const box = el("div", "rescue");
+    box.appendChild(el("b", null, "★" + r.title + " が入らなくなりました"));
+    if (!r.swaps.length) {
+      box.append("どの予定を動かしても入りません。どれかをはずしてください。");
+    } else {
+      box.append("こう入れ替えると入ります:");
+      for (const s of r.swaps) {
+        const b = el("button", null,
+          s.title + " を " + DAY_LABEL[s.to.day] + " " + s.to.start + " に移す"
+          + "（" + r.title + " は " + DAY_LABEL[s.thenAt.day] + " " + s.thenAt.start + "）");
+        b.onclick = () => {
+          const t = S.fixed.find(f => f.showId === s.showId && f.day === s.from.day && f.start === s.from.start);
+          if (t) { t.day = s.to.day; t.start = s.to.start; t.end = s.to.end; }
+          S.fixed.push({ day: s.thenAt.day, start: s.thenAt.start, end: s.thenAt.end, showId: r.showId });
+          S.justAdded.add(r.showId);
+          render();
+        };
+        box.appendChild(b);
+      }
+    }
+    host.appendChild(box);
+  }
+
+  // 休憩を置く
+  const brk = el("div", "brk");
+  const dsel = el("select");
+  for (const d of DAYS()) dsel.appendChild(new Option(DAY_LABEL[d], d));
+  const tin = el("input"); tin.type = "time"; tin.value = "12:30";
+  const lsel = el("select");
+  for (const n of [30, 45, 60, 90]) lsel.appendChild(new Option(n + "分", String(n)));
+  lsel.value = "60";
+  const put = el("button", "btn", "休憩を置く");
+  put.onclick = () => {
+    if (!/^\d{1,2}:\d{2}$/.test(tin.value)) return;
+    const a = toMinutes(tin.value), b = a + Number(lsel.value);
+    S.fixed.push({ day: dsel.value, start: hhmm(a), end: hhmm(b), label: "休憩" });
+    render();
+  };
+  brk.append(dsel, tin, lsel, put);
+  host.appendChild(brk);
+
+  const opts = optionsIndex();
+  const placed = placedIds();
+
+  for (const v of VENUE_ORDER) {
+    const list = SHOWS.filter(s => s.venue === v);
+    if (!list.length) continue;
+    host.appendChild(el("div", "vh", VENUES[v].label));
+    const box = el("div", "slist");
+    for (const show of list) box.appendChild(showRow(show, opts, placed));
+    host.appendChild(box);
+  }
+}
+
+function showRow(show, opts, placed) {
+  const done = placed.has(show.id);
+  const row = el("div", "srow" + (done ? " done" : ""));
+  row.style.setProperty("--venue", vcol(show.venue));
+
+  const head = el("div", "shead");
+  const fav = el("button", "fav", S.favorites.has(show.id) ? "★" : "☆");
+  fav.setAttribute("aria-pressed", String(S.favorites.has(show.id)));
+  fav.setAttribute("aria-label", show.title + " をお気に入りにする");
+  fav.onclick = () => {
+    S.favorites.has(show.id) ? S.favorites.delete(show.id) : S.favorites.add(show.id);
+    render();
+  };
+  head.appendChild(fav);
+
+  const title = el("button", "stitle");
+  title.setAttribute("aria-expanded", String(S.open === show.id));
+  if (done) title.appendChild(el("span", "tick", "✓"));
+  title.appendChild(el("span", "nm", show.title));
+  const left = opts.get(show.id)?.length ?? 0;
+  title.appendChild(el("span", "mt", done ? "参加する" : show.durationMin + "分 " + yen(show.price)));
+  if (!done && left > 0 && left <= 2) title.appendChild(el("span", "warnq", "残り" + left));
+  if (!done && left === 0) title.appendChild(el("span", "warnq", "入らない"));
+  title.onclick = () => { S.open = S.open === show.id ? null : show.id; render(); };
+  head.appendChild(title);
+  row.appendChild(head);
+
+  if (S.open !== show.id) return row;
+
+  const box = el("div", "slots");
+  if (done) {
+    const cur = S.fixed.find(f => f.showId === show.id);
+    box.appendChild(el("div", "dl",
+      DAY_LABEL[cur.day] + " " + cur.start + "–" + cur.end + " で参加"));
+    const off = el("button", "btn sub", "やめる");
+    off.onclick = () => {
+      S.fixed = S.fixed.filter(f => f.showId !== show.id);
+      S.justAdded.delete(show.id); render();
+    };
+    box.appendChild(off);
+    row.appendChild(box);
+    return row;
+  }
+
+  const ok = new Set((opts.get(show.id) ?? []).map(o => o.day + o.start));
+  for (const day of DAYS()) {
+    const slots = show.slots.filter(s => s.day === day);
+    if (!slots.length) continue;
+    box.appendChild(el("div", "dl", DAY_LABEL[day]));
+    const sc = el("div", "sc");
+    for (const s of slots) {
+      const b = el("button", null, s.start);
+      b.disabled = !ok.has(day + s.start);
+      b.title = s.start + "–" + s.end + (b.disabled ? "（他の予定とぶつかります）" : "");
+      b.setAttribute("aria-label", DAY_LABEL[day] + " " + s.start + "から参加する");
+      b.onclick = () => {
+        S.fixed.push({ day, start: s.start, end: s.end, showId: show.id });
+        S.open = null; render();
+      };
+      sc.appendChild(b);
+    }
+    box.appendChild(sc);
+  }
+  row.appendChild(box);
+  return row;
+}
+
+/* ---------------- 上ペイン: 段階2 埋める ---------------- */
+function phase2(host) {
+  const placed = placedIds();
+  if (placed.size === 0) {
+    host.appendChild(el("p", "hint",
+      "まず「押さえる」で参加する回をいくつか置いてください。ここは残りを埋める段階です。"));
+    return;
+  }
+
+  host.appendChild(el("p", "hint",
+    "置いた予定は動かしません。土日どちらも見たうえで、待ち時間が短くなるように詰めます。"));
+
+  // 日ごとの時間帯
+  for (const day of DAYS()) {
+    const w = winOf(day);
+    const r = el("div", "winrow");
+    r.appendChild(el("span", "lbl", DAY_LABEL[day]));
+    const a = el("input"); a.type = "time"; a.value = w.from;
+    a.setAttribute("aria-label", DAY_LABEL[day] + " これ以降に入れる");
+    const b = el("input"); b.type = "time"; b.value = w.to;
+    b.setAttribute("aria-label", DAY_LABEL[day] + " これ以前に終える");
+    const set = () => {
+      S.windows[day] = { from: a.value, to: b.value };
+      render();
+    };
+    a.onchange = set; b.onchange = set;
+    r.append(a, el("span", null, "〜"), b, el("span", null, "の間だけ"));
+    host.appendChild(r);
+  }
+
+  const favOnly = el("label", "favonly");
+  const cb = el("input"); cb.type = "checkbox"; cb.checked = S.onlyFav;
+  cb.onchange = () => { S.onlyFav = cb.checked; render(); };
+  favOnly.append(cb, "★を付けた公演だけを入れる");
+  host.appendChild(favOnly);
+
+  const res = suggestFills(SHOWS, S.fixed, {
+    days: DAYS(), bufferMin: BUFFER,
+    favoriteIds: [...S.favorites], onlyFavorites: S.onlyFav, windows: S.windows,
+  });
+  const favIn = res.added.filter(a => S.favorites.has(a.showId)).length;
+
+  const bar = el("div", "restbar");
+  const go = el("button", "btn",
+    res.added.length
+      ? "おまかせで " + res.added.length + "公演 入れる" + (favIn ? "（★" + favIn + "）" : "")
+      : "もう入りません");
+  go.disabled = !res.added.length;
+  go.onclick = () => {
+    for (const a of res.added) {
+      S.fixed.push({ day: a.day, start: a.start, end: a.end, showId: a.showId });
+      S.justAdded.add(a.showId);
+    }
+    render();
+  };
+  bar.appendChild(go);
+  host.appendChild(bar);
+  if (res.added.length) {
+    host.appendChild(el("p", "hint", "入れたあとのあき合計: "
+      + DAYS().map(d => DAY_LABEL[d] + " " + (res.idleByDay[d] ?? 0) + "分").join(" / ")));
+  }
+
+  const opts = optionsIndex();
+  let any = false;
+  for (const day of DAYS()) {
+    const gaps = gapsOf(day);
+    for (const g of gaps) {
+      const cands = [];
+      for (const [id, list] of opts) {
+        const hit = list.find(o => o.day === day && o.startMin >= g.a && o.endMin <= g.b);
+        if (hit) cands.push({ id, hit, left: list.length });
+      }
+      if (!cands.length) continue;
+      any = true;
+      const c = el("div", "gapc");
+      c.appendChild(el("div", "gt", DAY_LABEL[day] + "　" + hhmm(g.a) + "〜" + hhmm(g.b)));
+      c.appendChild(el("div", "gs", (g.b - g.a) + "分あいています"));
+      const chips = el("div", "chips");
+      cands.sort((x, y) => x.left - y.left || x.hit.startMin - y.hit.startMin);
+      for (const cd of cands.slice(0, 6)) {
+        const show = byId.get(cd.id);
+        const b = el("button", "chip");
+        b.style.setProperty("--venue", vcol(show.venue));
+        b.append(show.title + " " + cd.hit.start);
+        if (cd.left === 1) b.appendChild(el("span", "lc", "　最後の枠"));
+        b.onclick = () => {
+          S.fixed.push({ day, start: cd.hit.start, end: cd.hit.end, showId: cd.id });
+          S.justAdded.add(cd.id); render();
+        };
+        chips.appendChild(b);
+      }
+      c.appendChild(chips);
+      host.appendChild(c);
+    }
+  }
+  if (!any) host.appendChild(el("p", "none", "空いているところに入る公演はもうありません。"));
+}
+
+/** その日の予定のあいだの空き。前後の余裕(バッファ)を引いた実効の範囲で返す。 */
+function gapsOf(day) {
+  const list = onDay(day);
+  const out = [];
+  let cur = T0;
+  for (const f of list) {
+    if (f.a - cur > BUFFER) out.push({ a: cur, b: f.a });
+    cur = Math.max(cur, f.b);
+  }
+  if (T1 - cur > BUFFER) out.push({ a: cur, b: T1 });
+  return out;
+}
+
+/* ---------------- 下ペイン: 両日の予定 ---------------- */
+function board(host) {
+  const list = S.fixed.filter(f => f.showId).map(f => byId.get(f.showId));
+  let per = 0, grp = 0;
+  for (const s of list) (s.unit === "group" ? (grp += s.price) : (per += s.price));
+  const money = [per && yen(per) + "/人", grp && yen(grp) + "/回"].filter(Boolean).join(" ＋ ") || "—";
+
+  const tot = el("div", "tot");
+  tot.appendChild(el("b", null, list.length + "公演"));
+  for (const d of DAYS()) {
+    const evs = onDay(d);
+    let idle = 0;
+    for (let i = 1; i < evs.length; i++) idle += evs[i].a - evs[i - 1].b;
+    tot.appendChild(el("span", null,
+      DAY_LABEL[d] + " " + evs.filter(f => f.showId).length + "（あき" + idle + "分）"));
+  }
+  tot.appendChild(el("span", "sp", money));
+  host.appendChild(tot);
+
+  const board = el("div", "board");
+  board.appendChild(el("div", "dh ax", "."));
+  for (const d of DAYS()) board.appendChild(el("div", "dh", DAY_LABEL[d]));
+
+  const H = (T1 - T0) * PPM;
+  const ax = el("div", "axc");
+  ax.style.height = H + "px";
+  for (let m = T0; m <= T1; m += 60) {
+    const t = el("div", "tk", hhmm(m));
+    t.style.top = (m - T0) * PPM + "px";
+    ax.appendChild(t);
+  }
+  board.appendChild(ax);
+
+  for (const day of DAYS()) {
+    const col = el("div", "daycol");
+    col.style.height = H + "px";
+    for (let m = T0; m <= T1; m += 60) {
+      const h = el("div", "hr"); h.style.top = (m - T0) * PPM + "px"; col.appendChild(h);
+    }
+    const evs = onDay(day);
+    if (!evs.length) col.appendChild(el("div", "emptyday", "まだ予定なし"));
+    for (const f of evs) {
+      const show = f.showId ? byId.get(f.showId) : null;
+      const e = el("div", "ev" + (show ? "" : " rest")
+        + (show && S.justAdded.has(show.id) ? " new" : ""));
+      if (show) e.style.setProperty("--venue", vcol(show.venue));
+      e.style.top = (f.a - T0) * PPM + "px";
+      e.style.height = ((f.b - f.a) * PPM - 2) + "px";
+      const x = el("button", "x", "×");
+      x.setAttribute("aria-label", (show ? show.title : "休憩") + " をはずす");
+      x.onclick = () => {
+        S.fixed = S.fixed.filter(g => !(g.day === f.day && g.start === f.start && g.showId === f.showId
+          && g.label === f.label));
+        render();
+      };
+      e.appendChild(x);
+      e.appendChild(el("div", "et", show ? show.title : (f.label ?? "休憩")));
+      e.appendChild(el("div", "ee", f.start + "–" + f.end));
+      col.appendChild(e);
+    }
+    board.appendChild(col);
+  }
+  host.appendChild(board);
+}
+
+/* ---------------- 描画 ---------------- */
+function render() {
+  const host = document.getElementById(HOST_ID);
+  const phone = el("div", "phone");
+  const pane = el("div", "pane");
+
+  const top = el("div", "top");
+  const ph = el("div", "phases");
+  for (const [n, ttl, sub] of [[1, "押さえる", "STEP 1"], [2, "埋める", "STEP 2"]]) {
+    const b = el("button");
+    b.appendChild(el("b", null, sub));
+    b.append(ttl);
+    b.setAttribute("aria-selected", String(S.phase === n));
+    b.onclick = () => { S.phase = n; S.open = null; render(); };
+    ph.appendChild(b);
+  }
+  const body = el("div", "topbody");
+  (S.phase === 1 ? phase1 : phase2)(body);
+  top.append(ph, body);
+
+  const bot = el("div", "bot");
+  board(bot);
+
+  pane.append(top, bot);
+  phone.appendChild(pane);
+  host.replaceChildren(phone);
+}
+
+render();
+
+}
+boot("stage1");
+boot("stage2");
+boot("stage3");
+boot("stage4");
+boot("stage5");
+</script>

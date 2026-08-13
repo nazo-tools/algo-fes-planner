@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ROUND — algoフェス2026</title>
+<style>
+/* 見た目は「紙の栞」。見出しだけ明朝、本文は角ゴ、数字は Georgia。
+   色相＝会場（朱・藍・紫）、濃さ＝優先度。
+   日本語のWebフォントは埋め込めない（数MB／Artifactは外部読み込み不可）ので、
+   端末に入っている書体から選んでいる。明朝が無ければ角ゴに落ちる。 */
+:root{
+  color-scheme:light dark;
+  --bg:#faf9f6; --surface:#fff; --sunken:#f0eeea;
+  --ink:#1a1a1a; --muted:#56534e; --subtle:#8a867f;
+  --line:#ddd9d1; --line-soft:#eae7e1;
+  --v-hallHigh:#b0402f; --v-room2f:#1c5a6b; --v-hall2f:#6b4a8a;
+  --onblk:#fff; --ghost:.13;
+  --star:#a8801c; --warn-bg:#f5efe3; --warn-bd:#e0d3b6; --warn-fg:#7a5410;
+  --ok-fg:#2c6a4a;
+  --font-ui:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
+  --font-disp:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP","Times New Roman",serif;
+  --font-num:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  --shadow:0 1px 2px rgba(26,26,26,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17161a; --surface:#1e1d22; --sunken:#232227;
+  --ink:#ece9e3; --muted:#a29d94; --subtle:#7e786f;
+  --line:#34322f; --line-soft:#2a2825;
+  --v-hallHigh:#e8735c; --v-room2f:#56b6cc; --v-hall2f:#ab8ad0;
+  --onblk:#17161a; --ghost:.22;
+  --star:#dcb35a; --warn-bg:#2b2418; --warn-bd:#443a26; --warn-fg:#e0bd79;
+  --ok-fg:#7fc4a0;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}}
+:root[data-theme="dark"]{
+  --bg:#17161a; --surface:#1e1d22; --sunken:#232227;
+  --ink:#ece9e3; --muted:#a29d94; --subtle:#7e786f;
+  --line:#34322f; --line-soft:#2a2825;
+  --v-hallHigh:#e8735c; --v-room2f:#56b6cc; --v-hall2f:#ab8ad0;
+  --onblk:#17161a; --ghost:.22;
+  --star:#dcb35a; --warn-bg:#2b2418; --warn-bd:#443a26; --warn-fg:#e0bd79;
+  --ok-fg:#7fc4a0;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
+  font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%}
+:where(button,input,select,a):focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.shell{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;
+  background:var(--bg);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.masthead{flex:none;display:flex;align-items:baseline;gap:8px;padding:9px 12px 7px;
+  border-bottom:1px solid var(--line)}
+.masthead h1{margin:0;font-family:var(--font-num);font-size:1.02rem;font-weight:700;
+  letter-spacing:.14em}
+.masthead .sub{font-size:.68rem;color:var(--subtle);font-family:var(--font-num)}
+#app{flex:1;display:flex;flex-direction:column;min-height:0}
+
+/* ---- 上ペイン ---- */
+.top{flex:0 0 47%;display:flex;flex-direction:column;border-bottom:1px solid var(--line);
+  background:var(--bg);min-height:0}
+.phases{display:flex;gap:5px;padding:9px 11px 8px}
+.phases button{flex:1;padding:7px 5px;border-radius:5px;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  font:inherit;font-family:var(--font-disp);font-size:.82rem;font-weight:600;line-height:1.25}
+.phases button b{display:block;font-family:var(--font-num);font-size:.6rem;letter-spacing:.12em;
+  color:var(--subtle);font-weight:400}
+.phases button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.phases button[aria-selected="true"] b{color:var(--surface);opacity:.6}
+.topbody{flex:1;overflow-y:auto;padding:0 11px 12px;min-height:0}
+.hint{font-size:.73rem;color:var(--subtle);margin:0 0 8px}
+
+.setbar{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.godays{display:flex;gap:5px;align-items:center}
+.godays .lbl{font-size:.7rem;color:var(--subtle);font-weight:700;min-width:3.2em}
+.godays button{flex:1;padding:5px 6px;border-radius:5px;cursor:pointer;
+  border:1px dashed var(--line);background:transparent;color:var(--subtle);
+  font:inherit;font-size:.73rem;font-weight:700}
+.godays button[aria-pressed="true"]{border-style:solid;border-color:var(--ink);
+  background:var(--ink);color:var(--surface)}
+
+/* ---- 使い方 ---- */
+.intro{flex:1;overflow-y:auto;padding:20px 18px 24px;display:flex;flex-direction:column;gap:14px}
+.intro h2{margin:0;font-family:var(--font-disp);font-size:1.1rem;font-weight:600;letter-spacing:.02em}
+.intro ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px}
+.intro li{display:flex;gap:11px;align-items:flex-start}
+.intro .no{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-family:var(--font-num);font-size:.82rem;
+  background:var(--ink);color:var(--surface)}
+.intro li b{display:block;font-family:var(--font-disp);font-size:.94rem;font-weight:600}
+.intro li p{margin:2px 0 0;font-size:.79rem;color:var(--muted);line-height:1.65}
+.intro .fine{margin:0;font-size:.76rem;color:var(--subtle);padding-left:37px;line-height:1.6}
+.intro .btn{flex:none;margin-top:auto;align-self:stretch;padding:11px}
+.howto{border:0;background:none;color:var(--subtle);font:inherit;font-size:.72rem;
+  cursor:pointer;margin-left:auto;padding:2px 0;text-decoration:underline;
+  text-underline-offset:3px}
+
+/* ---- 時刻の入力 ---- */
+/* ポップの位置はボタンではなく行を基準にする。ボタン基準だと右端ではみ出す。 */
+.tf{display:inline-flex;align-items:center;gap:3px}
+.tfb{border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;
+  font:inherit;font-family:var(--font-num);font-size:.86rem;padding:4px 11px;border-radius:4px;
+  font-variant-numeric:tabular-nums lining-nums;letter-spacing:.02em}
+.tfb.empty{font-family:var(--font-ui);font-size:.73rem;color:var(--subtle);border-style:dashed}
+.tfb[aria-expanded="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.tfx{border:0;background:none;color:var(--subtle);cursor:pointer;font:inherit;font-size:.8rem;
+  line-height:1;padding:3px 2px}
+.tfp{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:20;
+  background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  box-shadow:0 6px 20px rgba(0,0,0,.16);padding:8px 9px 9px}
+.tfl{font-size:.63rem;color:var(--subtle);font-weight:700;margin:0 0 3px}
+.tfl:not(:first-child){margin-top:7px}
+.tfr{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
+.tfr.min{grid-template-columns:repeat(6,1fr)}
+.tfr button{border:1px solid var(--line-soft);background:var(--bg);color:var(--ink);cursor:pointer;
+  font:inherit;font-family:var(--font-num);font-size:.78rem;padding:5px 0;border-radius:3px;
+  font-variant-numeric:tabular-nums lining-nums}
+.tfr button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+
+.vh{font-family:var(--font-disp);font-size:.68rem;letter-spacing:.14em;color:var(--subtle);
+  font-weight:600;margin:11px 0 5px}
+.slist{display:flex;flex-direction:column;gap:4px}
+.srow{border:1px solid var(--line);border-left:3px solid var(--venue);border-radius:5px;
+  background:var(--surface);overflow:hidden}
+.srow.done{background:var(--sunken)}
+.srow.off{opacity:.5}
+.shead{display:flex;align-items:stretch;width:100%}
+.fav{flex:none;border:0;background:none;cursor:pointer;padding:8px 2px 8px 8px;
+  font-size:.84rem;line-height:1;color:var(--subtle);align-self:center}
+.fav[aria-pressed="true"]{color:var(--star)}
+.stitle{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:6px 9px 6px 6px;
+  cursor:pointer;background:none;border:0;font:inherit;color:inherit;text-align:left}
+.th{flex:none;display:block;object-fit:cover;background:var(--sunken)}
+.th.sm{width:34px;height:46px;border-radius:3px;border:1px solid var(--line-soft)}
+.th.xs{width:18px;height:18px;border-radius:2px;position:absolute;top:2px;left:4px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.stxt{flex:1;min-width:0}
+.nmline{display:flex;align-items:center;gap:5px;min-width:0}
+.nm{flex:1;min-width:0;font-family:var(--font-disp);font-size:.85rem;font-weight:600;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tick{flex:none;font-size:.72rem;font-weight:700;color:var(--venue)}
+.srow.done .nm{color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:7px;font-size:.67rem;color:var(--subtle);
+  font-variant-numeric:tabular-nums lining-nums;margin-top:1px}
+.meta span:nth-child(-n+3){font-family:var(--font-num)}
+.warnq{color:var(--warn-fg);font-weight:700;font-family:var(--font-ui)!important}
+.okq{color:var(--ok-fg);font-weight:700;font-family:var(--font-ui)!important}
+
+.rescue{border:1px solid var(--warn-bd);background:var(--warn-bg);color:var(--warn-fg);
+  border-radius:5px;padding:9px 10px;margin-bottom:9px;font-size:.74rem}
+.rescue b{display:block;margin-bottom:4px;font-family:var(--font-disp);font-size:.78rem}
+.rescue button{display:block;width:100%;text-align:left;margin-top:5px;border-radius:4px;
+  border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:.72rem;padding:5px 8px;line-height:1.35}
+
+.winrow{display:flex;gap:6px;align-items:center;font-size:.7rem;color:var(--muted);
+  margin-bottom:6px;position:relative}
+.winrow .lbl{font-weight:700;min-width:4.8em;flex:none}
+.winrow .tilde{color:var(--subtle);flex:none}
+.favonly{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted);margin:6px 0 2px}
+
+.slots{padding:0 9px 9px;border-top:1px solid var(--line-soft)}
+.dl{font-size:.68rem;color:var(--subtle);margin:7px 0 4px;font-weight:700}
+.sc{display:flex;flex-wrap:wrap;gap:4px}
+.sc button{border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:4px;padding:3px 8px;cursor:pointer;font:inherit;font-size:.74rem;
+  font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums}
+.sc button:disabled{opacity:.3;cursor:not-allowed;text-decoration:line-through}
+
+.restbar{display:flex;gap:6px;margin:9px 0 4px}
+.btn{flex:1;padding:9px 6px;border-radius:5px;cursor:pointer;border:1px solid var(--ink);
+  background:var(--ink);color:var(--surface);font:inherit;font-family:var(--font-disp);
+  font-size:.83rem;font-weight:600}
+.btn.sub{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.brk{margin-top:10px;padding:9px 10px 10px;border:1px solid var(--line);border-radius:5px;
+  background:var(--surface);display:flex;flex-direction:column;gap:7px}
+.brkh{font-family:var(--font-disp);font-size:.78rem;font-weight:600;color:var(--muted)}
+.brkrow{display:flex;gap:7px;align-items:center;position:relative}
+.seg{display:flex;gap:4px;flex:1}
+.seg button{flex:1;padding:5px 4px;border-radius:4px;cursor:pointer;font:inherit;font-size:.73rem;
+  font-weight:700;border:1px dashed var(--line);background:transparent;color:var(--subtle)}
+.brkrow .seg button{font-size:.72rem}
+.brkrow.times .tf{flex:1}
+.brkrow.times .tfb{width:100%;text-align:center}
+.tfsep{color:var(--subtle);font-size:.78rem}
+.seg.lab button{font-weight:400;font-size:.72rem}
+.seg button[aria-pressed="true"]{border-style:solid;border-color:var(--ink);
+  background:var(--ink);color:var(--surface)}
+.brk .btn{padding:8px 6px;font-size:.79rem;font-variant-numeric:tabular-nums lining-nums}
+
+.slink{display:block;margin-top:9px;font-size:.72rem;color:var(--muted);
+  text-decoration:underline;text-underline-offset:3px}
+
+.gapc{border:1px dashed var(--line);border-radius:5px;padding:8px 9px;margin-bottom:6px;
+  background:var(--surface)}
+.gapc .gt{font-family:var(--font-disp);font-size:.76rem;font-weight:600;
+  font-variant-numeric:tabular-nums lining-nums}
+.gapc .gs{font-family:var(--font-num);font-size:.68rem;color:var(--subtle);
+  font-variant-numeric:tabular-nums lining-nums}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chip{border:1px dashed var(--venue);background:transparent;color:var(--ink);border-radius:4px;
+  padding:3px 9px;cursor:pointer;font:inherit;font-size:.72rem;
+  font-variant-numeric:tabular-nums lining-nums}
+.chip::before{content:"＋";color:var(--venue);font-weight:700;margin-right:3px}
+.chip .lc{color:var(--warn-fg);font-weight:700}
+.none{font-size:.72rem;color:var(--subtle)}
+
+/* ---- 下ペイン ---- */
+.bot{flex:1;overflow-y:auto;background:var(--sunken);padding:9px 11px 14px;min-height:0}
+.tot{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.73rem;
+  font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;
+  margin-bottom:8px;color:var(--muted)}
+.tot b{font-family:var(--font-disp);font-size:.9rem;color:var(--ink);font-weight:600}
+.tot .sp{margin-left:auto;color:var(--subtle)}
+.clrbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:-2px 0 9px}
+.clrbar .q{font-size:.71rem;color:var(--muted);flex:1;min-width:11em}
+.clr{border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;
+  font:inherit;font-size:.71rem;padding:4px 10px;border-radius:4px}
+.clr.armed{border-color:var(--v-hallHigh);color:var(--v-hallHigh);font-weight:700}
+.board{display:grid;grid-template-columns:32px 1fr 1fr;gap:5px;position:relative}
+.dh{font-family:var(--font-disp);font-size:.7rem;font-weight:600;color:var(--muted);
+  text-align:center;padding-bottom:3px;position:sticky;top:0;background:var(--sunken);z-index:2}
+.dh.ax{color:transparent}
+.axc{position:relative}
+.axc .tk{position:absolute;right:2px;font-family:var(--font-num);font-size:.62rem;
+  color:var(--subtle);transform:translateY(-.5em);font-variant-numeric:tabular-nums lining-nums}
+.daycol{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:5px}
+.daycol .hr{position:absolute;left:0;right:0;border-top:1px solid var(--line-soft)}
+.ev{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 5px;overflow:hidden;
+  background:var(--venue);color:var(--onblk)}
+.ev .et{font-family:var(--font-disp);font-size:.66rem;font-weight:600;line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev .ee{font-family:var(--font-num);font-size:.59rem;opacity:.85;
+  font-variant-numeric:tabular-nums lining-nums}
+.ev .x{position:absolute;top:0;right:1px;border:0;background:none;cursor:pointer;
+  color:var(--onblk);opacity:.8;font-size:.72rem;line-height:1;padding:2px 3px}
+.ev.rest{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,transparent 5px 10px);
+  border:1px dashed var(--line);color:var(--muted)}
+.ev.rest .x{color:var(--muted)}
+.ev.new{outline:2px solid var(--ink);outline-offset:-2px}
+.emptyday{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:var(--subtle)}
+
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="masthead">
+    <h1>ROUND</h1>
+    <span class="sub">algoフェス2026 ／ 9.12–9.13</span>
+    <button class="howto" id="howto">使い方</button>
+  </header>
+  <main id="app"></main>
+</div>
+<script type="module" src="ui.js"></script>
+</body>
+</html>
