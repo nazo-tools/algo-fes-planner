@@ -4,6 +4,8 @@
 // ただし保存したデータのほうが古くなることはある（公演データを直したあとなど）ので、
 // 読み戻すときは今のデータと突き合わせて、実在しないものは黙って捨てる。
 
+import { toMinutes, toHHMM } from "./planner.js";
+
 export const STORAGE_KEY = "algo-fes-planner/v1";
 
 const isHHMM = (v) => typeof v === "string" && /^\d{1,2}:\d{2}$/.test(v);
@@ -91,4 +93,73 @@ export function saveState(store, s) {
   } catch {
     return false;
   }
+}
+
+/* ---------------- 共有 ---------------- */
+//
+// 立てた予定をURLに畳む。LINEに貼れる長さに収めたいので、
+// 公演は「id と何回目か」、空けた時間は「日・開始・終了・名札の番号」だけを持つ。
+// 名札は決まった4つからしか選べないので、番号にすれば日本語がURLに出ない。
+
+/** 予定をURLの断片にする。何も無ければ空文字。 */
+export function encodePlan(fixed, { shows, days, labels }) {
+  const byId = new Map(shows.map((s) => [s.id, s]));
+  const parts = [];
+
+  for (const f of fixed) {
+    if (f.showId != null) {
+      const show = byId.get(f.showId);
+      if (!show) continue;
+      const d = days.indexOf(f.day);
+      if (d < 0) continue;
+      // 何回目か、ではなく何時からか、で持つ。時間割を直したときに
+      // 黙って別の回にすり替わるより、その予定が落ちるほうがましなので
+      if (!show.slots.some((x) => x.day === f.day && x.start === f.start)) continue;
+      parts.push([f.showId, d, toMinutes(f.start)].join("."));
+    } else {
+      const d = days.indexOf(f.day);
+      if (d < 0) continue;
+      const li = labels.indexOf(f.label);
+      parts.push("!" + [d, toMinutes(f.start), toMinutes(f.end), li < 0 ? 0 : li].join("."));
+    }
+  }
+
+  return parts.length ? ["1", ...parts].join("~") : "";
+}
+
+/**
+ * URLの断片を予定に戻す。
+ * 人からもらうものなので、読めない部分は落として、通ったぶんだけ返す。
+ */
+export function decodePlan(str, { shows, days, labels }) {
+  if (typeof str !== "string" || !str) return [];
+  const parts = str.split("~");
+  if (parts.shift() !== "1") return [];
+
+  const byId = new Map(shows.map((s) => [s.id, s]));
+  const out = [];
+  const seen = new Set();
+
+  for (const p of parts) {
+    if (p.startsWith("!")) {
+      const [d, a, b, li] = p.slice(1).split(".").map(Number);
+      if (!days[d]) continue;
+      if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b > 1440 || a >= b) continue;
+      out.push({ day: days[d], start: toHHMM(a), end: toHHMM(b), label: labels[li] ?? labels[0] });
+    } else {
+      const seg = p.split(".");
+      if (seg.length < 3) continue;
+      const at = Number(seg.pop());
+      const day = days[Number(seg.pop())];
+      const id = seg.join(".");
+      const show = byId.get(id);
+      if (!show || !day || !Number.isInteger(at) || seen.has(id)) continue;
+      const sl = show.slots.find((x) => x.day === day && toMinutes(x.start) === at);
+      if (!sl) continue;
+      seen.add(id);
+      out.push({ day: sl.day, start: sl.start, end: sl.end, showId: id });
+    }
+  }
+
+  return out;
 }

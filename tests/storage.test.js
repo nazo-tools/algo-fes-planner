@@ -1,6 +1,14 @@
 // 保存データは古くなる。読み戻しが今のデータと食い違ったときに何を捨てるか、をここで固める。
 import { describe, it, expect } from "vitest";
-import { encodeState, decodeState, loadState, saveState, STORAGE_KEY } from "../storage.js";
+import {
+  encodeState,
+  decodeState,
+  loadState,
+  saveState,
+  encodePlan,
+  decodePlan,
+  STORAGE_KEY,
+} from "../storage.js";
 
 const SHOWS = [
   {
@@ -181,5 +189,70 @@ describe("loadState / saveState", () => {
     };
     expect(saveState(store, state())).toBe(false);
     expect(loadState(store, CTX)).toBeNull();
+  });
+});
+
+describe("encodePlan / decodePlan", () => {
+  const LABELS = ["休憩", "ごはん", "移動", "用事"];
+  const PCTX = { shows: SHOWS, days: DAYS, labels: LABELS };
+  const round = (fixed) => decodePlan(encodePlan(fixed, PCTX), PCTX);
+
+  it("公演も空けた時間も往復して同じに戻る", () => {
+    const fixed = [
+      { day: "09-12", start: "13:00", end: "14:00", showId: "a" },
+      { day: "09-12", start: "12:00", end: "12:45", label: "ごはん" },
+    ];
+    expect(round(fixed)).toEqual(fixed);
+  });
+
+  it("日本語はURLに出ない", () => {
+    const s = encodePlan([{ day: "09-12", start: "12:00", end: "12:45", label: "ごはん" }], PCTX);
+    expect(s).toMatch(/^[\x20-\x7e]+$/);
+    expect(s).toBe("1~!0.720.765.1");
+  });
+
+  it("予定がなければ空文字", () => {
+    expect(encodePlan([], PCTX)).toBe("");
+  });
+
+  it("読めないものは null ではなく空の予定として返す", () => {
+    expect(decodePlan("", PCTX)).toEqual([]);
+    expect(decodePlan("こわれている", PCTX)).toEqual([]);
+    expect(decodePlan("2~a.0", PCTX)).toEqual([]); // 知らないバージョン
+    expect(decodePlan(null, PCTX)).toEqual([]);
+  });
+
+  it("知らない公演や無い回は落として、残りは通す", () => {
+    expect(decodePlan("1~zzz.0.780~a.0.999~b.0.900", PCTX)).toEqual([
+      { day: "09-12", start: "15:00", end: "16:00", showId: "b" },
+    ]);
+  });
+
+  it("同じ公演が二重に入っていたら最初だけ残す", () => {
+    expect(decodePlan("1~a.0.780~a.1.600", PCTX)).toHaveLength(1);
+  });
+
+  it("時刻がおかしい空け時間は落とす", () => {
+    expect(decodePlan("1~!0.800.700.0", PCTX)).toEqual([]); // 終わりが先
+    expect(decodePlan("1~!9.700.800.0", PCTX)).toEqual([]); // 無い日
+    expect(decodePlan("1~!0.x.800.0", PCTX)).toEqual([]);
+  });
+
+  it("知らない名札は先頭の名札に寄せる", () => {
+    expect(decodePlan("1~!0.720.780.7", PCTX)[0].label).toBe("休憩");
+  });
+
+  it("時間割が直って回が消えたら、黙って別の回にせず落とす", () => {
+    const s = encodePlan([{ day: "09-12", start: "13:00", end: "14:00", showId: "a" }], PCTX);
+    const 直った = [{ id: "a", slots: [{ day: "09-12", start: "13:30", end: "14:30" }] }];
+    expect(decodePlan(s, { ...PCTX, shows: 直った })).toEqual([]);
+  });
+
+  it("終了時刻が直っていれば、その回として通す", () => {
+    const s = encodePlan([{ day: "09-12", start: "13:00", end: "14:00", showId: "a" }], PCTX);
+    const 直った = [{ id: "a", slots: [{ day: "09-12", start: "13:00", end: "14:30" }] }];
+    expect(decodePlan(s, { ...PCTX, shows: 直った })).toEqual([
+      { day: "09-12", start: "13:00", end: "14:30", showId: "a" },
+    ]);
   });
 });

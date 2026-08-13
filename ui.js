@@ -15,7 +15,7 @@ import {
   festivalNow,
   nowNext,
 } from "./planner.js";
-import { loadState, saveState } from "./storage.js";
+import { loadState, saveState, encodePlan, decodePlan } from "./storage.js";
 
 const BUFFER = 10;
 /** 空けておく時間の名前。ここに無いものは「用事」で足りる、という想定 */
@@ -126,7 +126,14 @@ const S = {
   intro: true, // 使い方を出しているか
   clearing: false, // 全部はずすの確認中か
   brk: { day: ALL_DAYS[0], start: "12:30", end: "13:30", label: BREAK_LABELS[0] },
+  shareOpen: false, // 共有のURLを出しているか
+  copied: false,
+  shared: false, // 人からもらった予定を見ているか（この間は保存しない）
+  mine: null, // もらった予定を見ている間、自分の予定を預かっておく
 };
+
+/** 共有まわりで使う、今のデータの形。 */
+const PCTX = { shows: SHOWS, days: ALL_DAYS, labels: BREAK_LABELS };
 
 /* 前に立てた予定を読み戻す。当日に開き直して消えていたら困る。 */
 const store = (() => {
@@ -147,6 +154,28 @@ if (store) {
     S.onlyFav = saved.onlyFav;
     S.intro = !saved.introDone;
   }
+}
+
+// URLに予定が乗っていたら、それを見せる。ただし相手の予定で自分の保存を
+// 上書きはしない。取り込むと言われるまでは、預かったまま表示だけ差し替える。
+function takeShared() {
+  const m = /[#&]p=([^&]+)/.exec(location.hash);
+  const plan = m ? decodePlan(decodeURIComponent(m[1]), PCTX) : [];
+  if (!plan.length) return false;
+  if (!S.shared) S.mine = S.fixed; // 預かるのは最初の一度だけ
+  S.fixed = plan;
+  S.shared = true;
+  S.intro = false;
+  return true;
+}
+
+takeShared();
+
+const dropHash = () => history.replaceState(null, "", location.pathname + location.search);
+
+function shareUrl() {
+  const p = encodePlan(S.fixed, PCTX);
+  return location.origin + location.pathname + (p ? "#p=" + p : "");
 }
 
 const winOf = (day) => S.windows[day] ?? { from: "", to: "" };
@@ -655,7 +684,73 @@ function nowPanel(host, now) {
   host.appendChild(box);
 }
 
+/* ---------------- 共有 ---------------- */
+
+/** もらった予定を見ているあいだの断り。取り込むまでは自分の予定に触らない。 */
+function sharedBar(host) {
+  const bar = el("div", "shbar");
+  bar.appendChild(
+    el("b", null, "送られてきた予定です（" + S.fixed.length + "件）"),
+  );
+  bar.appendChild(
+    el("span", "q", "まだ保存していません。取り込むと、いま自分が立てている予定は置き換わります。"),
+  );
+
+  const take = el("button", "clr armed", "自分の予定にする");
+  take.onclick = () => {
+    S.shared = false;
+    S.mine = null;
+    dropHash();
+    render();
+  };
+  const back = el("button", "clr", "見るだけ（元に戻す）");
+  back.onclick = () => {
+    S.fixed = S.mine ?? [];
+    S.shared = false;
+    S.mine = null;
+    dropHash();
+    render();
+  };
+  bar.append(take, back);
+  host.appendChild(bar);
+}
+
+/** 自分の予定を渡す。URLに畳んであるので、貼れればどこでも渡る。 */
+function sharePanel(host) {
+  const box = el("div", "share");
+  const url = shareUrl();
+
+  const inp = el("input", "surl");
+  inp.value = url;
+  inp.readOnly = true;
+  inp.setAttribute("aria-label", "この予定のURL");
+  inp.onfocus = () => inp.select();
+  box.appendChild(inp);
+
+  const cp = el("button", "clr" + (S.copied ? " armed" : ""), S.copied ? "コピーしました" : "コピー");
+  cp.onclick = () => {
+    const done = () => {
+      S.copied = true;
+      render();
+    };
+    // クリップボードは使えないことがある。そのときは選ばせる
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(done, () => inp.select());
+    } else {
+      inp.select();
+    }
+  };
+  box.appendChild(cp);
+
+  box.appendChild(
+    el("p", "fine", "開いた人には、この予定が「送られてきた予定」として出ます。その人が今立てている予定は、取り込むと言うまで消えません。"),
+  );
+  host.appendChild(box);
+}
+
 function board(host) {
+  if (S.shared) sharedBar(host);
+
   const now = festivalNow(new Date(), FES);
   nowPanel(host, now);
 
@@ -688,6 +783,15 @@ function board(host) {
         render();
       };
       bar.appendChild(b);
+
+      const sh = el("button", "clr", S.shareOpen ? "とじる" : "この予定を送る");
+      sh.setAttribute("aria-expanded", String(S.shareOpen));
+      sh.onclick = () => {
+        S.shareOpen = !S.shareOpen;
+        S.copied = false;
+        render();
+      };
+      bar.appendChild(sh);
     } else {
       bar.appendChild(el("span", "q", S.fixed.length + "件の予定を全部はずします。★は残ります。"));
       const yes = el("button", "clr armed", "はずす");
@@ -706,6 +810,7 @@ function board(host) {
       bar.append(yes, no);
     }
     host.appendChild(bar);
+    if (S.shareOpen && !S.clearing) sharePanel(host);
   }
 
   const grid = el("div", "board");
@@ -847,13 +952,19 @@ function render() {
 
   host.replaceChildren(top, bot);
   host.querySelector(".topbody").scrollTop = keep;
-  if (store) saveState(store, S);
+  // もらった予定を見ているあいだは、自分の保存に手を出さない
+  if (store && !S.shared) saveState(store, S);
 }
 
 document.getElementById("howto").onclick = () => {
   S.intro = true;
   render();
 };
+
+// 開いたままのタブで共有リンクを踏むと、読み込み直しは起きない
+window.addEventListener("hashchange", () => {
+  if (takeShared()) render();
+});
 
 // 当日は時計が進むぶんだけ表示が古くなる。分が変わったときだけ描き直す
 let lastMin = -1;
