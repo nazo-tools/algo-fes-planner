@@ -94,6 +94,25 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 .intro li p{margin:2px 0 0;font-size:.79rem;color:var(--muted);line-height:1.65}
 .intro .fine{margin:0;font-size:.76rem;color:var(--subtle);padding-left:37px;line-height:1.6}
 .intro .btn{flex:none;margin-top:auto;align-self:stretch;padding:11px}
+/* つくる／みる。作る場所と、でき上がりを見る場所を分ける */
+.modes{margin-left:auto;display:flex;gap:3px;flex:none}
+.modes button{border:1px solid var(--line);background:var(--surface);color:var(--subtle);
+  cursor:pointer;font:inherit;font-family:var(--font-disp);font-size:.73rem;font-weight:600;
+  padding:3px 10px;border-radius:4px}
+.modes button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+
+/* 一覧を畳んで予定表を広げる */
+.fold{flex:none;width:30px;border:1px solid var(--line);background:var(--surface);
+  color:var(--subtle);cursor:pointer;font:inherit;font-size:.7rem;border-radius:5px}
+.top.folded{flex:none}
+.top.folded .topbody{display:none}
+.bot.only{background:var(--sunken)}
+.vacant{background:var(--surface);border:1px dashed var(--line);border-radius:5px;
+  padding:22px 14px;text-align:center;display:flex;flex-direction:column;gap:11px;
+  align-items:center;margin-top:20px}
+.vacant b{font-family:var(--font-disp);font-size:.88rem;color:var(--muted);font-weight:600}
+.vacant .btn{width:auto;padding:7px 18px}
+
 .howto{border:0;background:none;color:var(--subtle);font:inherit;font-size:.72rem;
   cursor:pointer;margin-left:auto;padding:2px 0;text-decoration:underline;
   text-underline-offset:3px}
@@ -178,7 +197,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .brk{margin-top:10px;padding:9px 10px 10px;border:1px solid var(--line);border-radius:5px;
   background:var(--surface);display:flex;flex-direction:column;gap:7px}
-.brkh{font-family:var(--font-disp);font-size:.78rem;font-weight:600;color:var(--muted)}
+.brkh{display:flex;align-items:center;gap:7px;width:100%;padding:0;border:0;background:none;
+  cursor:pointer;text-align:left;font:inherit;font-family:var(--font-disp);font-size:.78rem;
+  font-weight:600;color:var(--muted)}
+.brkh .sign{flex:none;width:17px;height:17px;display:inline-flex;align-items:center;
+  justify-content:center;line-height:1;border:1px solid var(--line);border-radius:3px;
+  font-family:var(--font-num);font-size:.8rem;color:var(--subtle)}
+.brk.open .brkh .sign{border-color:var(--ink);color:var(--ink)}
 .brkrow{display:flex;gap:7px;align-items:center;position:relative}
 .seg{display:flex;gap:4px;flex:1}
 .seg button{flex:1;padding:5px 4px;border-radius:4px;cursor:pointer;font:inherit;font-size:.73rem;
@@ -284,7 +309,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 <div class="shell">
   <header class="masthead">
     <h1>ROUND</h1>
-    <span class="sub">algoフェス2026 ／ 9.12–9.13</span>
+    <span class="sub">algoフェス2026</span>
+    <div class="modes">
+      <button id="m-make" aria-pressed="true">つくる</button>
+      <button id="m-view" aria-pressed="false">みる</button>
+    </div>
     <button class="howto" id="howto">使い方</button>
   </header>
   <main id="app"></main>
@@ -1605,6 +1634,9 @@ const S = {
   intro: true, // 使い方を出しているか
   clearing: false, // 全部はずすの確認中か
   brk: { day: ALL_DAYS[0], start: "12:30", end: "13:30", label: BREAK_LABELS[0] },
+  mode: "make", // つくる / みる
+  topOpen: true, // つくる のとき、上の一覧をひらいているか
+  brkOpen: false, // 「空けておく」をひらいているか
   shareOpen: false, // 共有のURLを出しているか
   copied: false,
   shared: false, // 人からもらった予定を見ているか（この間は保存しない）
@@ -1777,8 +1809,19 @@ function phase1(host) {
  * ごはんも移動も用事も、押さえた予定と同じ扱いにすれば埋める側が勝手に避ける。
  */
 function breakPanel() {
-  const box = el("div", "brk");
-  box.appendChild(el("div", "brkh", "この時間は空けておく"));
+  const box = el("div", "brk" + (S.brkOpen ? " open" : ""));
+
+  // 毎回使うものではないので、畳んでおいて一覧に場所を譲る
+  const head = el("button", "brkh");
+  head.setAttribute("aria-expanded", String(S.brkOpen));
+  head.append(el("span", "sign", S.brkOpen ? "−" : "＋"), "この時間は空けておく");
+  head.onclick = () => {
+    S.brkOpen = !S.brkOpen;
+    S.picker = null;
+    render();
+  };
+  box.appendChild(head);
+  if (!S.brkOpen) return box;
 
   const days = DAYS();
   if (!days.includes(S.brk.day)) S.brk.day = days[0];
@@ -2230,6 +2273,19 @@ function sharePanel(host) {
 function board(host) {
   if (S.shared) sharedBar(host);
 
+  if (S.mode === "view" && !S.fixed.length) {
+    const b = el("div", "vacant");
+    b.appendChild(el("b", null, "まだ予定がありません"));
+    const go = el("button", "btn", "つくる にもどる");
+    go.onclick = () => {
+      S.mode = "make";
+      render();
+    };
+    b.appendChild(go);
+    host.appendChild(b);
+    return;
+  }
+
   const now = festivalNow(new Date(), FES);
   nowPanel(host, now);
 
@@ -2393,6 +2449,15 @@ function intro() {
 /* ---------------- 描画 ---------------- */
 let renderedPhase = null;
 
+const modeBtn = { make: document.getElementById("m-make"), view: document.getElementById("m-view") };
+for (const [m, b] of Object.entries(modeBtn)) {
+  b.onclick = () => {
+    S.mode = m;
+    S.picker = null;
+    render();
+  };
+}
+
 function render() {
   const host = document.getElementById("app");
   // 描き直しで一覧の位置が戻ってしまうと、回を選ぶだけで迷子になる。
@@ -2400,12 +2465,23 @@ function render() {
   const keep = renderedPhase === S.phase ? host.querySelector(".topbody")?.scrollTop ?? 0 : 0;
   renderedPhase = S.phase;
 
+  for (const [m, b] of Object.entries(modeBtn)) b.setAttribute("aria-pressed", String(S.mode === m));
+
   if (S.intro) {
     host.replaceChildren(intro());
     return;
   }
 
-  const top = el("div", "top");
+  // みる: 作る道具を全部しまって、でき上がった予定表だけにする
+  if (S.mode === "view") {
+    const only = el("div", "bot only");
+    board(only);
+    host.replaceChildren(only);
+    if (store && !S.shared) saveState(store, S);
+    return;
+  }
+
+  const top = el("div", "top" + (S.topOpen ? "" : " folded"));
   const ph = el("div", "phases");
   for (const [n, ttl, sub] of [
     [1, "押さえる", "STEP 1"],
@@ -2418,10 +2494,23 @@ function render() {
     b.onclick = () => {
       S.phase = n;
       S.open = null;
+      S.topOpen = true; // 畳んだまま段階だけ変わっても何も起きない
       render();
     };
     ph.appendChild(b);
   }
+
+  // 一覧を畳めば、みるに移らなくてもその場で予定表が広がる
+  const fold = el("button", "fold", S.topOpen ? "▲" : "▼");
+  fold.setAttribute("aria-expanded", String(S.topOpen));
+  fold.setAttribute("aria-label", S.topOpen ? "一覧を畳んで予定表を広げる" : "一覧をひらく");
+  fold.onclick = () => {
+    S.topOpen = !S.topOpen;
+    S.picker = null;
+    render();
+  };
+  ph.appendChild(fold);
+
   const body = el("div", "topbody");
   (S.phase === 1 ? phase1 : phase2)(body);
   top.append(ph, body);

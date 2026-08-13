@@ -1,0 +1,379 @@
+<title>ROUND — 画面の分け方</title>
+<style>
+:root{
+  --bg:#faf9f6; --surface:#fff; --sunken:#f0eeea; --ink:#1a1a1a; --muted:#56534e;
+  --subtle:#8a867f; --line:#ddd9d1; --line-soft:#eae7e1;
+  --v-hallHigh:#b0402f; --v-room2f:#1c5a6b; --v-hall2f:#6b4a8a; --onblk:#fff;
+  --warn-bg:#f5efe3; --warn-bd:#e0d3b6; --warn-fg:#7a5410;
+  --font-ui:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --font-disp:"Hiragino Mincho ProN","Yu Mincho","MS PMincho",serif;
+  --font-num:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#17161a; --surface:#1e1d22; --sunken:#232227; --ink:#ece9e3; --muted:#a29d94;
+    --subtle:#7e786f; --line:#34322f; --line-soft:#2a2825;
+    --v-hallHigh:#e8735c; --v-room2f:#56b6cc; --v-hall2f:#ab8ad0; --onblk:#17161a;
+    --warn-bg:#2a2620; --warn-bd:#4a4030; --warn-fg:#d9bd84;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17161a; --surface:#1e1d22; --sunken:#232227; --ink:#ece9e3; --muted:#a29d94;
+  --subtle:#7e786f; --line:#34322f; --line-soft:#2a2825;
+  --v-hallHigh:#e8735c; --v-room2f:#56b6cc; --v-hall2f:#ab8ad0; --onblk:#17161a;
+  --warn-bg:#2a2620; --warn-bd:#4a4030; --warn-fg:#d9bd84;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
+  font-size:15px;line-height:1.75;-webkit-text-size-adjust:100%}
+.page{max-width:1040px;margin:0 auto;padding:38px 20px 70px;display:flex;
+  flex-direction:column;gap:34px}
+
+h1{margin:0;font-family:var(--font-num);font-size:1.1rem;font-weight:700;
+  letter-spacing:.16em;color:var(--ink)}
+.lead{margin:0;font-family:var(--font-disp);font-size:1.5rem;font-weight:600;
+  line-height:1.5;text-wrap:balance;color:var(--ink)}
+h2{margin:0 0 10px;font-family:var(--font-disp);font-size:1.02rem;font-weight:600;color:var(--ink)}
+p{margin:0 0 10px;color:var(--muted)}
+p:last-child{margin-bottom:0}
+b{color:var(--ink)}
+section{border-top:1px solid var(--line);padding-top:22px}
+
+/* 測った数字 */
+.stats{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:0;padding:0}
+.stats li{flex:1 1 150px;background:var(--surface);border:1px solid var(--line);
+  border-radius:5px;padding:11px 13px 12px}
+.stats .n{display:block;font-family:var(--font-num);font-size:1.55rem;line-height:1.15;
+  color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.stats .k{display:block;font-size:.72rem;color:var(--subtle);margin-top:3px}
+.stats .bad .n{color:var(--v-hallHigh)}
+
+/* 3案 */
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:860px){.opts{grid-template-columns:1fr;gap:30px}}
+.opt{display:flex;flex-direction:column;gap:11px;min-width:0}
+.opt h3{margin:0;font-family:var(--font-disp);font-size:.98rem;font-weight:600;color:var(--ink)}
+.opt h3 .tag{display:inline-block;font-family:var(--font-ui);font-size:.66rem;font-weight:700;
+  letter-spacing:.06em;padding:1px 6px;border-radius:3px;margin-right:7px;vertical-align:2px;
+  border:1px solid var(--line);color:var(--subtle)}
+.opt.pick h3 .tag{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.opt .why{font-size:.79rem;line-height:1.7;color:var(--muted);margin:0}
+.opt .why em{font-style:normal;color:var(--v-hallHigh)}
+
+/* 端末の枠。実物の 375×812 を縮めて出している */
+.stage{background:var(--sunken);border:1px solid var(--line);border-radius:7px;
+  padding:14px 0;display:flex;justify-content:center;overflow:hidden}
+.phone{width:375px;height:812px;transform-origin:top center;background:var(--bg);
+  border:1px solid var(--line);border-radius:9px;overflow:hidden;display:flex;
+  flex-direction:column;flex:none;box-shadow:0 4px 18px rgba(0,0,0,.09)}
+
+/* ---- ここから中身は実物のCSSを写したもの ---- */
+.mast{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);
+  background:var(--surface);flex:none}
+.mast .t{font-family:var(--font-num);font-size:1.02rem;font-weight:700;letter-spacing:.14em}
+.mast .sub{font-size:.66rem;color:var(--subtle)}
+.mast .r{margin-left:auto;font-size:.68rem;color:var(--subtle);border:1px solid var(--line);
+  border-radius:4px;padding:2px 7px}
+.seg2{margin-left:auto;display:flex;gap:3px}
+.seg2 span{font-size:.72rem;font-weight:700;padding:3px 11px;border-radius:4px;
+  border:1px solid var(--line);color:var(--subtle)}
+.seg2 span.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+
+.tabs{display:flex;flex:none;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabs span{flex:1;text-align:center;padding:7px 2px 8px;font-family:var(--font-disp);
+  font-size:.83rem;font-weight:600;color:var(--subtle);border-bottom:2px solid transparent}
+.tabs span b{display:block;font-family:var(--font-num);font-size:.58rem;letter-spacing:.1em;
+  font-weight:400;color:var(--subtle)}
+.tabs span.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+.pane{overflow:hidden;background:var(--bg);padding:9px 11px;flex:none}
+.pane .hint{font-size:.7rem;color:var(--subtle);margin:0 0 8px}
+.srow{display:flex;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line-soft)}
+.srow .th{width:30px;height:41px;border-radius:2px;flex:none;
+  background:linear-gradient(150deg,var(--vc) 0%,var(--sunken) 130%);opacity:.85}
+.srow .b{min-width:0}
+.srow .b .n{font-family:var(--font-disp);font-size:.79rem;font-weight:600;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.srow .b .m{font-size:.63rem;color:var(--subtle);font-variant-numeric:tabular-nums lining-nums}
+.chips{display:flex;gap:4px;margin-left:auto;flex:none}
+.chips i{font-style:normal;font-family:var(--font-num);font-size:.6rem;border:1px solid var(--line);
+  border-radius:3px;padding:2px 4px;color:var(--muted)}
+
+.bot{flex:1;min-height:0;overflow:hidden;background:var(--sunken);padding:9px 11px 0;
+  position:relative}
+.bot.clip::after{content:"";position:absolute;left:0;right:0;bottom:0;height:52px;
+  background:linear-gradient(transparent,var(--sunken))}
+.tot{display:flex;gap:8px;align-items:baseline;font-size:.71rem;font-family:var(--font-num);
+  color:var(--muted);margin-bottom:8px;font-variant-numeric:tabular-nums lining-nums}
+.tot b{font-family:var(--font-disp);font-size:.86rem;color:var(--ink);font-weight:600}
+.tot .sp{margin-left:auto;color:var(--subtle)}
+
+.now{background:var(--surface);border:1px solid var(--line);border-radius:5px;
+  padding:7px 9px 8px;margin-bottom:9px}
+.now .r1{border-left:3px solid var(--v-hallHigh);padding-left:8px}
+.now .h{display:flex;align-items:baseline;gap:6px}
+.now .k{font-family:var(--font-disp);font-size:.68rem;font-weight:600;color:var(--surface);
+  background:var(--ink);border-radius:3px;padding:1px 6px}
+.now .n{font-family:var(--font-disp);font-size:.83rem;font-weight:600;color:var(--ink)}
+.now .s{display:flex;margin-top:2px;font-size:.66rem;color:var(--subtle);
+  font-variant-numeric:tabular-nums lining-nums}
+.now .x{margin-left:auto;font-family:var(--font-num);font-size:.72rem;color:var(--v-hallHigh);
+  font-weight:700}
+
+.board{display:grid;grid-template-columns:34px 1fr 1fr;gap:5px}
+.dh{font-family:var(--font-disp);font-size:.71rem;color:var(--muted);text-align:center;
+  padding-bottom:3px}
+.dh.ax{visibility:hidden}
+.axc,.daycol{position:relative}
+.daycol{background:var(--surface);border:1px solid var(--line);border-radius:4px}
+.tk{position:absolute;right:3px;font-family:var(--font-num);font-size:.58rem;color:var(--subtle);
+  transform:translateY(-50%);font-variant-numeric:tabular-nums lining-nums}
+.hr{position:absolute;left:0;right:0;border-top:1px dotted var(--line)}
+.ev{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 5px;overflow:hidden;
+  background:var(--vc);color:var(--onblk)}
+.ev .et{font-family:var(--font-disp);font-size:.63rem;font-weight:600;line-height:1.2;
+  overflow:hidden}
+.ev .ee{font-family:var(--font-num);font-size:.56rem;opacity:.85;
+  font-variant-numeric:tabular-nums lining-nums}
+.ev.rest{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,transparent 5px 10px);
+  border:1px dashed var(--line);color:var(--muted)}
+.foot{display:flex;gap:6px;padding:8px 11px 10px;background:var(--sunken);flex:none}
+.foot span{font-size:.7rem;border:1px solid var(--line);background:var(--surface);
+  border-radius:4px;padding:4px 9px;color:var(--muted)}
+.foot .armed{border-color:var(--v-hallHigh);color:var(--v-hallHigh);font-weight:700}
+
+.note{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:5px;
+  padding:13px 15px;font-size:.83rem;line-height:1.75;color:var(--muted)}
+.note b{color:var(--warn-fg)}
+</style>
+
+<div class="page">
+  <header>
+    <h1>ROUND</h1>
+    <p class="lead">画面の分け方を見直す</p>
+  </header>
+
+  <section>
+    <h2>今どうなっているか</h2>
+    <p>実物を iPhone の大きさ（375×812）で測った数字。</p>
+    <ul class="stats">
+      <li><span class="n">699<small>px</small></span><span class="k">予定表のほんとうの高さ</span></li>
+      <li class="bad"><span class="n">37<small>%</small></span><span class="k">一度に見えている量</span></li>
+      <li><span class="n">380<small>px</small></span><span class="k">下ペインの高さ</span></li>
+      <li><span class="n">155<small>px</small></span><span class="k">1日ぶんの幅</span></li>
+    </ul>
+    <p style="margin-top:12px">組み立てている間は、置いた回がその場で板に載るのがいい。ただ<b>できあがった予定表を見るときは、常に3分の1ずつしか見えない</b>。当日ホームに立って次を確かめるのも、人に見せるのも、この細い窓ごしになる。全画面にすれば 699px はちょうど収まる。</p>
+  </section>
+
+  <section>
+    <h2>3つの案</h2>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section>
+    <h2>推すのは案B</h2>
+    <p><b>予定表は「段階」ではなく「行き先」だから。</b>押さえる・埋めるは作るときの手順で、順番に意味がある。でき上がった予定表を見るのは、作り終わったあと・当日の朝・人に見せるとき——手順の外にある。STEP 3 として並べると、毎回そこまで進まないと着かない場所のように見える。</p>
+    <p>案Aでも動くものは同じになる。違うのは、3つ目のタブを見た人が「まだ終わっていない工程がある」と感じるかどうかだけ。</p>
+    <div class="note" style="margin-top:14px">
+      <b>変えるのはここだけ。</b>上の見出しに「つくる／みる」を足して、みるを選んだら編集側を畳む。予定表そのもの・当日の「次はこれ」・共有ボタンは、すでにあるものをそのまま置き直す。作る側の画面には一切手を入れない。
+    </div>
+  </section>
+</div>
+
+<script>
+const T0 = 600, T1 = 1260, PPM = 1.02;
+const VC = { hallHigh: "var(--v-hallHigh)", room2f: "var(--v-room2f)", hall2f: "var(--v-hall2f)" };
+const hhmm = (m) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+const min = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
+
+const PLAN = {
+  "9/12(土)": [
+    ["13:10", "14:00", "二〇一号室", "room2f"],
+    ["14:20", "15:10", "ごはん", null],
+    ["15:40", "17:30", "ゲンカイ・コウカイ・モモタロウ", "hallHigh"],
+    ["18:10", "20:20", "落とせ！", "hallHigh"],
+  ],
+  "9/13(日)": [
+    ["10:10", "10:40", "リアル空気読み。", "room2f"],
+    ["11:40", "12:15", "試験開始まで残り10分", "room2f"],
+    ["12:45", "14:55", "Innocent Girl Inside the Box", "hallHigh"],
+    ["15:30", "17:00", "ある五芒星の解読", "room2f"],
+  ],
+};
+
+const LIST = [
+  ["ゲンカイ・コウカイ・モモタロウ", "110分 ／ ¥3,000 ／ 残り5", "hallHigh"],
+  ["Innocent Girl Inside the Box", "130分 ／ ¥3,200 ／ 残り4", "hallHigh"],
+  ["二〇一号室", "50分 ／ ¥2,000 ／ 参加する", "room2f"],
+];
+
+const h = (tag, cls, txt) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+};
+
+function boardEl() {
+  const g = h("div", "board");
+  g.append(h("div", "dh ax", "."));
+  for (const d of Object.keys(PLAN)) g.append(h("div", "dh", d));
+
+  const H = (T1 - T0) * PPM;
+  const ax = h("div", "axc");
+  ax.style.height = H + "px";
+  for (let m = T0; m <= T1; m += 60) {
+    const t = h("div", "tk", hhmm(m));
+    t.style.top = (m - T0) * PPM + "px";
+    ax.append(t);
+  }
+  g.append(ax);
+
+  for (const [day, items] of Object.entries(PLAN)) {
+    const col = h("div", "daycol");
+    col.style.height = H + "px";
+    for (let m = T0; m <= T1; m += 60) {
+      const r = h("div", "hr");
+      r.style.top = (m - T0) * PPM + "px";
+      col.append(r);
+    }
+    for (const [s, e, name, venue] of items) {
+      const ev = h("div", "ev" + (venue ? "" : " rest"));
+      if (venue) ev.style.setProperty("--vc", VC[venue]);
+      ev.style.top = (min(s) - T0) * PPM + "px";
+      ev.style.height = (min(e) - min(s)) * PPM - 2 + "px";
+      ev.append(h("div", "et", name), h("div", "ee", s + "–" + e));
+      col.append(ev);
+    }
+    g.append(col);
+  }
+  return g;
+}
+
+function totals() {
+  const t = h("div", "tot");
+  t.append(h("b", null, "8公演"));
+  t.append(h("span", null, "9/12 3（あき70分）"));
+  const sp = h("span", "sp", "¥19,700/人");
+  t.append(sp);
+  return t;
+}
+
+function nowBox() {
+  const b = h("div", "now");
+  const r = h("div", "r1");
+  const head = h("div", "h");
+  head.append(h("span", "k", "次"), h("span", "n", "ゲンカイ・コウカイ・モモタロウ"));
+  const s = h("div", "s");
+  s.append(h("span", null, "15:40–17:30 ／ 11・12Fホール"), h("span", "x", "あと25分"));
+  r.append(head, s);
+  b.append(r);
+  return b;
+}
+
+function makerPane() {
+  const p = h("div", "pane");
+  p.style.height = "337px";
+  p.append(h("p", "hint", "参加する回をえらんで押さえます。"));
+  for (const [name, meta, venue] of LIST) {
+    const row = h("div", "srow");
+    const th = h("div", "th");
+    th.style.setProperty("--vc", VC[venue]);
+    const b = h("div", "b");
+    b.append(h("span", "n", name), h("span", "m", meta));
+    const c = h("div", "chips");
+    for (const t of ["13:10", "15:40", "18:10"]) c.append(h("i", null, t));
+    row.append(th, b, c);
+    p.append(row);
+  }
+  return p;
+}
+
+function mast(mode) {
+  const m = h("div", "mast");
+  m.append(h("span", "t", "ROUND"), h("span", "sub", "algoフェス2026"));
+  if (mode === "toggle") {
+    const g = h("div", "seg2");
+    g.append(h("span", null, "つくる"), h("span", "on", "みる"));
+    m.append(g);
+  } else {
+    m.append(h("span", "r", "使い方"));
+  }
+  return m;
+}
+
+function tabs(items, on) {
+  const t = h("div", "tabs");
+  items.forEach((label, i) => {
+    const s = h("span", i === on ? "on" : null);
+    if (label[1]) s.append(h("b", null, label[1]));
+    s.append(label[0]);
+    t.append(s);
+  });
+  return t;
+}
+
+function frame(kind) {
+  const p = h("div", "phone");
+  if (kind === "now") {
+    p.append(mast(), tabs([["押さえる", "STEP 1"], ["埋める", "STEP 2"]], 0), makerPane());
+    const bot = h("div", "bot clip");
+    bot.append(totals(), boardEl());
+    p.append(bot);
+  } else if (kind === "tab") {
+    p.append(mast(), tabs([["押さえる", "STEP 1"], ["埋める", "STEP 2"], ["予定", "STEP 3"]], 2));
+    const bot = h("div", "bot");
+    bot.append(totals(), nowBox(), boardEl());
+    p.append(bot);
+  } else {
+    p.append(mast("toggle"));
+    const bot = h("div", "bot");
+    bot.append(nowBox(), boardEl());
+    p.append(bot);
+    const f = h("div", "foot");
+    f.append(h("span", null, "この予定を送る"), h("span", null, "なおす"));
+    p.append(f);
+  }
+  return p;
+}
+
+const OPTS = [
+  ["now", "現状", "いまの形", "2ペインを常に出しておく。組み立て中は置いた回がすぐ載るのがいい。ただし<em>予定表は37%しか見えない</em>ままで、当日も人に見せるときもこの細い窓ごしになる。", false],
+  ["tab", "案A", "3つ目のタブ「予定」", "STEPの並びに足す。実装は最少で、迷いようもない。ただ番号のついた列に並ぶと、<em>まだ途中の工程</em>のように見える。予定表を見るのは手順の外の行為なのに。", false],
+  ["mode", "案B", "つくる／みる で分ける", "上の見出しにトグルを置く。みるを選ぶと編集側が畳まれ、<em>全画面の予定表</em>になる。当日の「次はこれ」と送るボタンもここに集まる。作る場所と見る場所が別になる。", true],
+];
+
+const host = document.getElementById("opts");
+for (const [kind, tag, title, why, pick] of OPTS) {
+  const box = h("div", "opt" + (pick ? " pick" : ""));
+  const t = h("h3");
+  t.append(h("span", "tag", tag));
+  t.append(title);
+  const stage = h("div", "stage");
+  const ph = frame(kind);
+  stage.append(ph);
+  const w = h("p", "why");
+  w.innerHTML = why;
+  box.append(t, stage, w);
+  host.append(box);
+}
+
+// 枠は 375px 幅ぶんある。置ける幅にあわせて縮める
+function fit() {
+  for (const stage of document.querySelectorAll(".stage")) {
+    const ph = stage.querySelector(".phone");
+    const s = Math.min(1, (stage.clientWidth - 28) / 375);
+    ph.style.transform = "scale(" + s + ")";
+    stage.style.height = 812 * s + 28 + "px";
+  }
+}
+fit();
+addEventListener("resize", fit);
+addEventListener("load", fit);
+// 幅の変化は resize が来ないこともある。枠そのものを見ておく
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(fit);
+  for (const stage of document.querySelectorAll(".stage")) ro.observe(stage);
+}
+</script>

@@ -126,6 +126,9 @@ const S = {
   intro: true, // 使い方を出しているか
   clearing: false, // 全部はずすの確認中か
   brk: { day: ALL_DAYS[0], start: "12:30", end: "13:30", label: BREAK_LABELS[0] },
+  mode: "make", // つくる / みる
+  topOpen: true, // つくる のとき、上の一覧をひらいているか
+  brkOpen: false, // 「空けておく」をひらいているか
   shareOpen: false, // 共有のURLを出しているか
   copied: false,
   shared: false, // 人からもらった予定を見ているか（この間は保存しない）
@@ -298,8 +301,19 @@ function phase1(host) {
  * ごはんも移動も用事も、押さえた予定と同じ扱いにすれば埋める側が勝手に避ける。
  */
 function breakPanel() {
-  const box = el("div", "brk");
-  box.appendChild(el("div", "brkh", "この時間は空けておく"));
+  const box = el("div", "brk" + (S.brkOpen ? " open" : ""));
+
+  // 毎回使うものではないので、畳んでおいて一覧に場所を譲る
+  const head = el("button", "brkh");
+  head.setAttribute("aria-expanded", String(S.brkOpen));
+  head.append(el("span", "sign", S.brkOpen ? "−" : "＋"), "この時間は空けておく");
+  head.onclick = () => {
+    S.brkOpen = !S.brkOpen;
+    S.picker = null;
+    render();
+  };
+  box.appendChild(head);
+  if (!S.brkOpen) return box;
 
   const days = DAYS();
   if (!days.includes(S.brk.day)) S.brk.day = days[0];
@@ -751,6 +765,19 @@ function sharePanel(host) {
 function board(host) {
   if (S.shared) sharedBar(host);
 
+  if (S.mode === "view" && !S.fixed.length) {
+    const b = el("div", "vacant");
+    b.appendChild(el("b", null, "まだ予定がありません"));
+    const go = el("button", "btn", "つくる にもどる");
+    go.onclick = () => {
+      S.mode = "make";
+      render();
+    };
+    b.appendChild(go);
+    host.appendChild(b);
+    return;
+  }
+
   const now = festivalNow(new Date(), FES);
   nowPanel(host, now);
 
@@ -914,6 +941,15 @@ function intro() {
 /* ---------------- 描画 ---------------- */
 let renderedPhase = null;
 
+const modeBtn = { make: document.getElementById("m-make"), view: document.getElementById("m-view") };
+for (const [m, b] of Object.entries(modeBtn)) {
+  b.onclick = () => {
+    S.mode = m;
+    S.picker = null;
+    render();
+  };
+}
+
 function render() {
   const host = document.getElementById("app");
   // 描き直しで一覧の位置が戻ってしまうと、回を選ぶだけで迷子になる。
@@ -921,12 +957,23 @@ function render() {
   const keep = renderedPhase === S.phase ? host.querySelector(".topbody")?.scrollTop ?? 0 : 0;
   renderedPhase = S.phase;
 
+  for (const [m, b] of Object.entries(modeBtn)) b.setAttribute("aria-pressed", String(S.mode === m));
+
   if (S.intro) {
     host.replaceChildren(intro());
     return;
   }
 
-  const top = el("div", "top");
+  // みる: 作る道具を全部しまって、でき上がった予定表だけにする
+  if (S.mode === "view") {
+    const only = el("div", "bot only");
+    board(only);
+    host.replaceChildren(only);
+    if (store && !S.shared) saveState(store, S);
+    return;
+  }
+
+  const top = el("div", "top" + (S.topOpen ? "" : " folded"));
   const ph = el("div", "phases");
   for (const [n, ttl, sub] of [
     [1, "押さえる", "STEP 1"],
@@ -939,10 +986,23 @@ function render() {
     b.onclick = () => {
       S.phase = n;
       S.open = null;
+      S.topOpen = true; // 畳んだまま段階だけ変わっても何も起きない
       render();
     };
     ph.appendChild(b);
   }
+
+  // 一覧を畳めば、みるに移らなくてもその場で予定表が広がる
+  const fold = el("button", "fold", S.topOpen ? "▲" : "▼");
+  fold.setAttribute("aria-expanded", String(S.topOpen));
+  fold.setAttribute("aria-label", S.topOpen ? "一覧を畳んで予定表を広げる" : "一覧をひらく");
+  fold.onclick = () => {
+    S.topOpen = !S.topOpen;
+    S.picker = null;
+    render();
+  };
+  ph.appendChild(fold);
+
   const body = el("div", "topbody");
   (S.phase === 1 ? phase1 : phase2)(body);
   top.append(ph, body);
