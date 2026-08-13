@@ -163,7 +163,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
   cursor:pointer;background:none;border:0;font:inherit;color:inherit;text-align:left}
 .th{flex:none;display:block;object-fit:cover;background:var(--sunken)}
 .th.sm{width:34px;height:46px;border-radius:3px;border:1px solid var(--line-soft)}
-.th.xs{width:18px;height:18px;border-radius:2px;position:absolute;top:2px;left:4px;
+.th.xs{width:18px;height:18px;border-radius:2px;order:-1;margin-top:1px;
   box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 .stxt{flex:1;min-width:0}
 .nmline{display:flex;align-items:center;gap:5px;min-width:0}
@@ -287,7 +287,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 .daycol{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:5px}
 .daycol .hr{position:absolute;left:0;right:0;border-top:1px solid var(--line-soft)}
 .ev{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 5px;overflow:hidden;
-  background:var(--venue);color:var(--onblk)}
+  background:var(--venue);color:var(--onblk);display:flex;gap:5px;align-items:flex-start}
+.ev .evt{flex:1;min-width:0;padding-right:11px}
 .ev .et{font-family:var(--font-disp);font-size:.66rem;font-weight:600;line-height:1.2;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ev .ee{font-family:var(--font-num);font-size:.59rem;opacity:.85;

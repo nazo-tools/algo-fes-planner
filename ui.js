@@ -921,9 +921,12 @@ function board(host) {
         render();
       };
       e.appendChild(x);
+      // 絵は文字の上に重ねない。横に並べて、文字の場所を絵に譲る
       if (show && (f.b - f.a) * PPM >= 44) e.appendChild(thumb(show, "xs"));
-      e.appendChild(el("div", "et", show ? show.title : f.label ?? "休憩"));
-      e.appendChild(el("div", "ee", f.start + "–" + f.end));
+      const txt = el("div", "evt");
+      txt.appendChild(el("div", "et", show ? show.title : f.label ?? "休憩"));
+      txt.appendChild(el("div", "ee", f.start + "–" + f.end));
+      e.appendChild(txt);
       col.appendChild(e);
     }
     grid.appendChild(col);
