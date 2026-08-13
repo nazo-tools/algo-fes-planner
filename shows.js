@@ -10,6 +10,7 @@
 export const FES = {
   title: "algoフェス2026",
   place: "街ハック！本社",
+  year: 2026,
   days: [
     { id: "09-12", label: "9/12", weekday: "土" },
     { id: "09-13", label: "9/13", weekday: "日" },

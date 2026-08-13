@@ -9,6 +9,8 @@ import {
   rescueSuggestions,
   diagnoseConflicts,
   formatPlanAsText,
+  festivalNow,
+  nowNext,
 } from "../planner.js";
 
 /** テスト用の公演を作るヘルパー。slots は [day, start, end] の配列。 */
@@ -734,5 +736,79 @@ describe("formatPlanAsText", () => {
     expect(text).toContain("2Fルーム");
     expect(text).toContain("30分");
     expect(text).toContain("公演B");
+  });
+});
+
+describe("festivalNow", () => {
+  const FES = { year: 2026, days: [{ id: "09-12" }, { id: "09-13" }] };
+
+  it("会期中の日時なら、その日と分に直す", () => {
+    expect(festivalNow(new Date(2026, 8, 12, 15, 40), FES)).toEqual({ day: "09-12", min: 940 });
+  });
+
+  it("2日目も拾う", () => {
+    expect(festivalNow(new Date(2026, 8, 13, 10, 0), FES)).toEqual({ day: "09-13", min: 600 });
+  });
+
+  it("会期の前後は null", () => {
+    expect(festivalNow(new Date(2026, 8, 11, 23, 59), FES)).toBeNull();
+    expect(festivalNow(new Date(2026, 8, 14, 0, 0), FES)).toBeNull();
+  });
+
+  it("日付が合っていても年が違えば null", () => {
+    expect(festivalNow(new Date(2025, 8, 12, 12, 0), FES)).toBeNull();
+    expect(festivalNow(new Date(2027, 8, 12, 12, 0), FES)).toBeNull();
+  });
+});
+
+describe("nowNext", () => {
+  const F = [
+    { day: "09-12", start: "10:00", end: "11:00", showId: "a" },
+    { day: "09-12", start: "12:00", end: "13:00", label: "ごはん" },
+    { day: "09-12", start: "15:40", end: "17:30", showId: "b" },
+    { day: "09-13", start: "10:00", end: "11:00", showId: "c" },
+  ];
+
+  it("開いている最中のものを current にする", () => {
+    const r = nowNext(F, { day: "09-12", min: toMinutes("10:30") });
+    expect(r.current.showId).toBe("a");
+    expect(r.leftOfCurrent).toBe(30);
+    expect(r.next.label).toBe("ごはん");
+    expect(r.untilNext).toBe(90);
+  });
+
+  it("終わった直後は current が無く、次だけになる", () => {
+    const r = nowNext(F, { day: "09-12", min: toMinutes("11:00") });
+    expect(r.current).toBeNull();
+    expect(r.next.label).toBe("ごはん");
+    expect(r.untilNext).toBe(60);
+    expect(r.done).toHaveLength(1);
+  });
+
+  it("最後が終わったら次は無い", () => {
+    const r = nowNext(F, { day: "09-12", min: toMinutes("18:00") });
+    expect(r.current).toBeNull();
+    expect(r.next).toBeNull();
+    expect(r.untilNext).toBeNull();
+    expect(r.done).toHaveLength(3);
+  });
+
+  it("その日の予定だけを見る", () => {
+    const r = nowNext(F, { day: "09-13", min: toMinutes("09:00") });
+    expect(r.next.showId).toBe("c");
+    expect(r.later).toHaveLength(0);
+    expect(r.done).toHaveLength(0);
+  });
+
+  it("始まる前は全部これから", () => {
+    const r = nowNext(F, { day: "09-12", min: toMinutes("09:00") });
+    expect(r.next.showId).toBe("a");
+    expect(r.later).toHaveLength(2);
+  });
+
+  it("並んでいなくても時刻順に見る", () => {
+    const r = nowNext([...F].reverse(), { day: "09-12", min: toMinutes("09:00") });
+    expect(r.next.showId).toBe("a");
+    expect(r.later.map((f) => f.start)).toEqual(["12:00", "15:40"]);
   });
 });

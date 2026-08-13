@@ -211,6 +211,26 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 
 /* ---- 下ペイン ---- */
 .bot{flex:1;overflow-y:auto;background:var(--sunken);padding:9px 11px 14px;min-height:0}
+
+/* 当日の「次はこれ」。会場で一番先に目に入る場所なので、ここだけ紙を白く抜く */
+.now{background:var(--surface);border:1px solid var(--line);border-radius:5px;
+  padding:8px 10px 9px;margin-bottom:9px}
+.nrow{border-left:3px solid var(--venue,var(--line));padding-left:8px}
+.nrow + .nrow{margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.nh{display:flex;align-items:baseline;gap:6px}
+.nk{font-family:var(--font-disp);font-size:.7rem;font-weight:600;color:var(--surface);
+  background:var(--ink);border-radius:3px;padding:1px 6px;flex:none}
+.nrow.nxt .nk{background:none;color:var(--muted);border:1px solid var(--line);padding:0 5px}
+.nt{font-family:var(--font-disp);font-size:.86rem;font-weight:600;color:var(--ink);line-height:1.3}
+.nx{margin-left:auto;flex:none;padding-left:8px;font-family:var(--font-num);font-size:.74rem;
+  color:var(--ink)}
+.nrow.cur .nx{color:var(--v-hallHigh);font-weight:700}
+.nsub{display:flex;align-items:baseline;margin-top:2px;font-size:.68rem;color:var(--subtle);
+  font-variant-numeric:tabular-nums lining-nums}
+.nfoot{margin-top:7px;font-size:.68rem;color:var(--subtle)}
+.nend{font-family:var(--font-disp);font-size:.8rem;color:var(--muted)}
+.now.pre{background:none;border-style:dashed}
+.npre{font-size:.68rem;color:var(--subtle);margin-bottom:6px}
 .tot{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.73rem;
   font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;
   margin-bottom:8px;color:var(--muted)}
@@ -242,6 +262,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
   border:1px dashed var(--line);color:var(--muted)}
 .ev.rest .x{color:var(--muted)}
 .ev.new{outline:2px solid var(--ink);outline-offset:-2px}
+.ev.past{opacity:.4}
 .emptyday{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-size:.7rem;color:var(--subtle)}
 
@@ -274,6 +295,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 const FES = {
   title: "algoフェス2026",
   place: "街ハック！本社",
+  year: 2026,
   days: [
     { id: "09-12", label: "9/12", weekday: "土" },
     { id: "09-13", label: "9/13", weekday: "日" },
@@ -1219,6 +1241,48 @@ function formatPlanAsText(plan, { dayLabel = "", venueLabels = {}, title = "は�
   return lines.join("\n");
 }
 
+/* ---------------- 当日 ---------------- */
+
+/**
+ * 今が会期中かどうかを、端末の時計から見る。
+ * 会期中なら { day, min }、そうでなければ null。
+ * 日付は端末のローカル時刻で見る（現地で開くので、それでいい）。
+ */
+function festivalNow(date, fes) {
+  if (date.getFullYear() !== fes.year) return null;
+  const id =
+    String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+  if (!fes.days.some((d) => d.id === id)) return null;
+  return { day: id, min: date.getHours() * 60 + date.getMinutes() };
+}
+
+/**
+ * 立てた予定を「今」で切って、いま出ているもの・次のもの・終わったものに分ける。
+ * 当日は全体を見渡したいわけではなく、次に何をすればいいかだけが知りたい。
+ *
+ * untilNext は次が始まるまでの分。leftOfCurrent は今出ているものが終わるまでの分。
+ */
+function nowNext(fixed, now) {
+  const today = fixed
+    .filter((f) => f.day === now.day)
+    .map((f) => ({ ...f, a: toMinutes(f.start), b: toMinutes(f.end) }))
+    .sort((x, y) => x.a - y.a);
+
+  const t = now.min;
+  const current = today.find((f) => f.a <= t && t < f.b) ?? null;
+  const upcoming = today.filter((f) => f.a > t);
+  const next = upcoming[0] ?? null;
+
+  return {
+    current,
+    next,
+    later: upcoming.slice(1),
+    done: today.filter((f) => f.b <= t),
+    untilNext: next ? next.a - t : null,
+    leftOfCurrent: current ? current.b - t : null,
+  };
+}
+
 /* ===== storage.js ===== */
 // 立てた予定の保存と読み戻し。
 //
@@ -1898,7 +1962,78 @@ function gapsOf(day) {
 }
 
 /* ---------------- 下ペイン: 両日の予定 ---------------- */
+/* ---------------- 当日 ---------------- */
+// 当日、会場で見るのは全体図ではなく「次に何をするか」だけ。
+// 端末の時計が会期の中に入っている間だけ、板の一番上に出す。
+
+/** 分を読める長さにする。 */
+function dur(m) {
+  if (m < 60) return m + "分";
+  const h = Math.floor(m / 60);
+  return h + "時間" + (m % 60 ? (m % 60) + "分" : "");
+}
+
+/** 予定1件を「15:40 タイトル」と「会場」に開く。 */
+function itemText(f) {
+  const show = f.showId ? byId.get(f.showId) : null;
+  return {
+    title: show ? show.title : f.label ?? "空けた時間",
+    where: show ? VENUES[show.venue].label : "",
+    venue: show ? show.venue : null,
+  };
+}
+
+function nowRow(kind, label, f, tail) {
+  const t = itemText(f);
+  const row = el("div", "nrow " + kind);
+  if (t.venue) row.style.setProperty("--venue", vcol(t.venue));
+  const head = el("div", "nh");
+  head.appendChild(el("span", "nk", label));
+  head.appendChild(el("span", "nt", t.title));
+  row.appendChild(head);
+
+  // 残り時間は題名の横に置くと、狭い画面で題名が削られる。下の行に逃がす
+  const sub = el("div", "nsub");
+  sub.appendChild(el("span", null, [f.start + "–" + f.end, t.where].filter(Boolean).join(" ／ ")));
+  if (tail) sub.appendChild(el("span", "nx", tail));
+  row.appendChild(sub);
+  return row;
+}
+
+function nowPanel(host, now) {
+  if (!S.fixed.length) return;
+
+  // 会期外は、当日ここに何が出るのかだけ見せておく
+  if (!now) {
+    const first = S.fixed
+      .slice()
+      .sort((a, b) => (a.day + a.start).localeCompare(b.day + b.start))[0];
+    const box = el("div", "now pre");
+    box.appendChild(el("div", "npre", "当日はここに次の予定が出ます"));
+    box.appendChild(nowRow("nxt", DAY_LABEL[first.day], first, null));
+    host.appendChild(box);
+    return;
+  }
+
+  const r = nowNext(S.fixed, now);
+  const box = el("div", "now");
+
+  if (r.current) box.appendChild(nowRow("cur", "いま", r.current, "残り" + dur(r.leftOfCurrent)));
+  if (r.next) box.appendChild(nowRow("nxt", "次", r.next, "あと" + dur(r.untilNext)));
+
+  if (!r.current && !r.next) {
+    box.appendChild(el("div", "nend", r.done.length ? "今日はこれで終わり。おつかれさま" : "今日の予定はありません"));
+  } else if (r.later.length) {
+    box.appendChild(el("div", "nfoot", "このあと " + r.later.length + "件"));
+  }
+
+  host.appendChild(box);
+}
+
 function board(host) {
+  const now = festivalNow(new Date(), FES);
+  nowPanel(host, now);
+
   const list = S.fixed.filter((f) => f.showId).map((f) => byId.get(f.showId));
   let per = 0;
   let grp = 0;
@@ -1974,7 +2109,13 @@ function board(host) {
     if (!evs.length) col.appendChild(el("div", "emptyday", "まだ予定なし"));
     for (const f of evs) {
       const show = f.showId ? byId.get(f.showId) : null;
-      const e = el("div", "ev" + (show ? "" : " rest") + (show && S.justAdded.has(show.id) ? " new" : ""));
+      // 終わったものは薄くする。当日、残りだけを目で拾えるように
+      const past = now && (day < now.day || (day === now.day && f.b <= now.min));
+      const e = el(
+        "div",
+        "ev" + (show ? "" : " rest") + (past ? " past" : "") +
+          (show && S.justAdded.has(show.id) ? " new" : ""),
+      );
       if (show) e.style.setProperty("--venue", vcol(show.venue));
       e.style.top = (f.a - T0) * PPM + "px";
       e.style.height = (f.b - f.a) * PPM - 2 + "px";
@@ -2088,6 +2229,15 @@ document.getElementById("howto").onclick = () => {
   S.intro = true;
   render();
 };
+
+// 当日は時計が進むぶんだけ表示が古くなる。分が変わったときだけ描き直す
+let lastMin = -1;
+setInterval(() => {
+  const n = festivalNow(new Date(), FES);
+  if (!n || n.min === lastMin || S.intro) return;
+  lastMin = n.min;
+  render();
+}, 20000);
 
 render();
 })();

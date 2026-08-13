@@ -211,6 +211,26 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
 
 /* ---- 下ペイン ---- */
 .bot{flex:1;overflow-y:auto;background:var(--sunken);padding:9px 11px 14px;min-height:0}
+
+/* 当日の「次はこれ」。会場で一番先に目に入る場所なので、ここだけ紙を白く抜く */
+.now{background:var(--surface);border:1px solid var(--line);border-radius:5px;
+  padding:8px 10px 9px;margin-bottom:9px}
+.nrow{border-left:3px solid var(--venue,var(--line));padding-left:8px}
+.nrow + .nrow{margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.nh{display:flex;align-items:baseline;gap:6px}
+.nk{font-family:var(--font-disp);font-size:.7rem;font-weight:600;color:var(--surface);
+  background:var(--ink);border-radius:3px;padding:1px 6px;flex:none}
+.nrow.nxt .nk{background:none;color:var(--muted);border:1px solid var(--line);padding:0 5px}
+.nt{font-family:var(--font-disp);font-size:.86rem;font-weight:600;color:var(--ink);line-height:1.3}
+.nx{margin-left:auto;flex:none;padding-left:8px;font-family:var(--font-num);font-size:.74rem;
+  color:var(--ink)}
+.nrow.cur .nx{color:var(--v-hallHigh);font-weight:700}
+.nsub{display:flex;align-items:baseline;margin-top:2px;font-size:.68rem;color:var(--subtle);
+  font-variant-numeric:tabular-nums lining-nums}
+.nfoot{margin-top:7px;font-size:.68rem;color:var(--subtle)}
+.nend{font-family:var(--font-disp);font-size:.8rem;color:var(--muted)}
+.now.pre{background:none;border-style:dashed}
+.npre{font-size:.68rem;color:var(--subtle);margin-bottom:6px}
 .tot{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.73rem;
   font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;
   margin-bottom:8px;color:var(--muted)}
@@ -242,6 +262,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
   border:1px dashed var(--line);color:var(--muted)}
 .ev.rest .x{color:var(--muted)}
 .ev.new{outline:2px solid var(--ink);outline-offset:-2px}
+.ev.past{opacity:.4}
 .emptyday{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-size:.7rem;color:var(--subtle)}
 

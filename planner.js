@@ -669,3 +669,45 @@ export function formatPlanAsText(plan, { dayLabel = "", venueLabels = {}, title 
 
   return lines.join("\n");
 }
+
+/* ---------------- 当日 ---------------- */
+
+/**
+ * 今が会期中かどうかを、端末の時計から見る。
+ * 会期中なら { day, min }、そうでなければ null。
+ * 日付は端末のローカル時刻で見る（現地で開くので、それでいい）。
+ */
+export function festivalNow(date, fes) {
+  if (date.getFullYear() !== fes.year) return null;
+  const id =
+    String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+  if (!fes.days.some((d) => d.id === id)) return null;
+  return { day: id, min: date.getHours() * 60 + date.getMinutes() };
+}
+
+/**
+ * 立てた予定を「今」で切って、いま出ているもの・次のもの・終わったものに分ける。
+ * 当日は全体を見渡したいわけではなく、次に何をすればいいかだけが知りたい。
+ *
+ * untilNext は次が始まるまでの分。leftOfCurrent は今出ているものが終わるまでの分。
+ */
+export function nowNext(fixed, now) {
+  const today = fixed
+    .filter((f) => f.day === now.day)
+    .map((f) => ({ ...f, a: toMinutes(f.start), b: toMinutes(f.end) }))
+    .sort((x, y) => x.a - y.a);
+
+  const t = now.min;
+  const current = today.find((f) => f.a <= t && t < f.b) ?? null;
+  const upcoming = today.filter((f) => f.a > t);
+  const next = upcoming[0] ?? null;
+
+  return {
+    current,
+    next,
+    later: upcoming.slice(1),
+    done: today.filter((f) => f.b <= t),
+    untilNext: next ? next.a - t : null,
+    leftOfCurrent: current ? current.b - t : null,
+  };
+}

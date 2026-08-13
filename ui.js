@@ -7,7 +7,14 @@
 
 import { SHOWS, VENUES, FES } from "./shows.js";
 import { SHOW_IMAGES } from "./show-images.js";
-import { suggestFills, placementOptions, rescueSuggestions, toMinutes } from "./planner.js";
+import {
+  suggestFills,
+  placementOptions,
+  rescueSuggestions,
+  toMinutes,
+  festivalNow,
+  nowNext,
+} from "./planner.js";
 import { loadState, saveState } from "./storage.js";
 
 const BUFFER = 10;
@@ -580,7 +587,78 @@ function gapsOf(day) {
 }
 
 /* ---------------- 下ペイン: 両日の予定 ---------------- */
+/* ---------------- 当日 ---------------- */
+// 当日、会場で見るのは全体図ではなく「次に何をするか」だけ。
+// 端末の時計が会期の中に入っている間だけ、板の一番上に出す。
+
+/** 分を読める長さにする。 */
+function dur(m) {
+  if (m < 60) return m + "分";
+  const h = Math.floor(m / 60);
+  return h + "時間" + (m % 60 ? (m % 60) + "分" : "");
+}
+
+/** 予定1件を「15:40 タイトル」と「会場」に開く。 */
+function itemText(f) {
+  const show = f.showId ? byId.get(f.showId) : null;
+  return {
+    title: show ? show.title : f.label ?? "空けた時間",
+    where: show ? VENUES[show.venue].label : "",
+    venue: show ? show.venue : null,
+  };
+}
+
+function nowRow(kind, label, f, tail) {
+  const t = itemText(f);
+  const row = el("div", "nrow " + kind);
+  if (t.venue) row.style.setProperty("--venue", vcol(t.venue));
+  const head = el("div", "nh");
+  head.appendChild(el("span", "nk", label));
+  head.appendChild(el("span", "nt", t.title));
+  row.appendChild(head);
+
+  // 残り時間は題名の横に置くと、狭い画面で題名が削られる。下の行に逃がす
+  const sub = el("div", "nsub");
+  sub.appendChild(el("span", null, [f.start + "–" + f.end, t.where].filter(Boolean).join(" ／ ")));
+  if (tail) sub.appendChild(el("span", "nx", tail));
+  row.appendChild(sub);
+  return row;
+}
+
+function nowPanel(host, now) {
+  if (!S.fixed.length) return;
+
+  // 会期外は、当日ここに何が出るのかだけ見せておく
+  if (!now) {
+    const first = S.fixed
+      .slice()
+      .sort((a, b) => (a.day + a.start).localeCompare(b.day + b.start))[0];
+    const box = el("div", "now pre");
+    box.appendChild(el("div", "npre", "当日はここに次の予定が出ます"));
+    box.appendChild(nowRow("nxt", DAY_LABEL[first.day], first, null));
+    host.appendChild(box);
+    return;
+  }
+
+  const r = nowNext(S.fixed, now);
+  const box = el("div", "now");
+
+  if (r.current) box.appendChild(nowRow("cur", "いま", r.current, "残り" + dur(r.leftOfCurrent)));
+  if (r.next) box.appendChild(nowRow("nxt", "次", r.next, "あと" + dur(r.untilNext)));
+
+  if (!r.current && !r.next) {
+    box.appendChild(el("div", "nend", r.done.length ? "今日はこれで終わり。おつかれさま" : "今日の予定はありません"));
+  } else if (r.later.length) {
+    box.appendChild(el("div", "nfoot", "このあと " + r.later.length + "件"));
+  }
+
+  host.appendChild(box);
+}
+
 function board(host) {
+  const now = festivalNow(new Date(), FES);
+  nowPanel(host, now);
+
   const list = S.fixed.filter((f) => f.showId).map((f) => byId.get(f.showId));
   let per = 0;
   let grp = 0;
@@ -656,7 +734,13 @@ function board(host) {
     if (!evs.length) col.appendChild(el("div", "emptyday", "まだ予定なし"));
     for (const f of evs) {
       const show = f.showId ? byId.get(f.showId) : null;
-      const e = el("div", "ev" + (show ? "" : " rest") + (show && S.justAdded.has(show.id) ? " new" : ""));
+      // 終わったものは薄くする。当日、残りだけを目で拾えるように
+      const past = now && (day < now.day || (day === now.day && f.b <= now.min));
+      const e = el(
+        "div",
+        "ev" + (show ? "" : " rest") + (past ? " past" : "") +
+          (show && S.justAdded.has(show.id) ? " new" : ""),
+      );
       if (show) e.style.setProperty("--venue", vcol(show.venue));
       e.style.top = (f.a - T0) * PPM + "px";
       e.style.height = (f.b - f.a) * PPM - 2 + "px";
@@ -770,5 +854,14 @@ document.getElementById("howto").onclick = () => {
   S.intro = true;
   render();
 };
+
+// 当日は時計が進むぶんだけ表示が古くなる。分が変わったときだけ描き直す
+let lastMin = -1;
+setInterval(() => {
+  const n = festivalNow(new Date(), FES);
+  if (!n || n.min === lastMin || S.intro) return;
+  lastMin = n.min;
+  render();
+}, 20000);
 
 render();
