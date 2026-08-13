@@ -13,12 +13,13 @@ import {
 const SHOWS = [
   {
     id: "a",
+    code: "a",
     slots: [
       { day: "09-12", start: "13:00", end: "14:00" },
       { day: "09-13", start: "10:00", end: "11:00" },
     ],
   },
-  { id: "b", slots: [{ day: "09-12", start: "15:00", end: "16:00" }] },
+  { id: "b", code: "b", slots: [{ day: "09-12", start: "15:00", end: "16:00" }] },
 ];
 const DAYS = ["09-12", "09-13"];
 const CTX = { shows: SHOWS, days: DAYS };
@@ -205,52 +206,77 @@ describe("encodePlan / decodePlan", () => {
     expect(round(fixed)).toEqual(fixed);
   });
 
-  it("日本語はURLに出ない", () => {
-    const s = encodePlan([{ day: "09-12", start: "12:00", end: "12:45", label: "ごはん" }], PCTX);
-    expect(s).toMatch(/^[\x20-\x7e]+$/);
-    expect(s).toBe("1~!0.720.765.1");
+  it("1件は決まった桁数に収まる", () => {
+    // 公演は4文字、空けた時間は7文字。頭のバージョン1文字を足したもの
+    expect(encodePlan([{ day: "09-12", start: "13:00", end: "14:00", showId: "a" }], PCTX)).toHaveLength(5);
+    expect(encodePlan([{ day: "09-12", start: "12:00", end: "12:45", label: "ごはん" }], PCTX)).toHaveLength(8);
+  });
+
+  it("日本語も記号もURLに出ない", () => {
+    const s = encodePlan(
+      [
+        { day: "09-13", start: "10:00", end: "11:00", showId: "a" },
+        { day: "09-12", start: "12:00", end: "12:45", label: "ごはん" },
+      ],
+      PCTX,
+    );
+    expect(s).toMatch(/^[0-9a-z-]+$/);
+    expect(s).toBe("2a1go-0k0l91");
   });
 
   it("予定がなければ空文字", () => {
     expect(encodePlan([], PCTX)).toBe("");
   });
 
-  it("読めないものは null ではなく空の予定として返す", () => {
+  it("読めないものは空の予定として返す", () => {
     expect(decodePlan("", PCTX)).toEqual([]);
     expect(decodePlan("こわれている", PCTX)).toEqual([]);
-    expect(decodePlan("2~a.0", PCTX)).toEqual([]); // 知らないバージョン
+    expect(decodePlan("1a0lo", PCTX)).toEqual([]); // 知らないバージョン
     expect(decodePlan(null, PCTX)).toEqual([]);
   });
 
+  it("途中で切れていても、読めたところまでは返す", () => {
+    const s = encodePlan(
+      [
+        { day: "09-12", start: "15:00", end: "16:00", showId: "b" },
+        { day: "09-12", start: "13:00", end: "14:00", showId: "a" },
+      ],
+      PCTX,
+    );
+    expect(decodePlan(s.slice(0, -2), PCTX)).toEqual([
+      { day: "09-12", start: "15:00", end: "16:00", showId: "b" },
+    ]);
+  });
+
   it("知らない公演や無い回は落として、残りは通す", () => {
-    expect(decodePlan("1~zzz.0.780~a.0.999~b.0.900", PCTX)).toEqual([
+    expect(decodePlan("2q0lo" + "a0zz" + "b0p0", PCTX)).toEqual([
       { day: "09-12", start: "15:00", end: "16:00", showId: "b" },
     ]);
   });
 
   it("同じ公演が二重に入っていたら最初だけ残す", () => {
-    expect(decodePlan("1~a.0.780~a.1.600", PCTX)).toHaveLength(1);
+    expect(decodePlan("2a0lo" + "a1go", PCTX)).toHaveLength(1);
   });
 
   it("時刻がおかしい空け時間は落とす", () => {
-    expect(decodePlan("1~!0.800.700.0", PCTX)).toEqual([]); // 終わりが先
-    expect(decodePlan("1~!9.700.800.0", PCTX)).toEqual([]); // 無い日
-    expect(decodePlan("1~!0.x.800.0", PCTX)).toEqual([]);
+    expect(decodePlan("-0m0k00".replace(/^/, "2"), PCTX)).toEqual([]); // 終わりが先
+    expect(decodePlan("2-9k0m00", PCTX)).toEqual([]); // 無い日
+    expect(decodePlan("2-0??m00", PCTX)).toEqual([]); // 時刻が読めない
   });
 
   it("知らない名札は先頭の名札に寄せる", () => {
-    expect(decodePlan("1~!0.720.780.7", PCTX)[0].label).toBe("休憩");
+    expect(decodePlan("2-0k0kx9", PCTX)[0].label).toBe("休憩");
   });
 
   it("時間割が直って回が消えたら、黙って別の回にせず落とす", () => {
     const s = encodePlan([{ day: "09-12", start: "13:00", end: "14:00", showId: "a" }], PCTX);
-    const 直った = [{ id: "a", slots: [{ day: "09-12", start: "13:30", end: "14:30" }] }];
+    const 直った = [{ id: "a", code: "a", slots: [{ day: "09-12", start: "13:30", end: "14:30" }] }];
     expect(decodePlan(s, { ...PCTX, shows: 直った })).toEqual([]);
   });
 
   it("終了時刻が直っていれば、その回として通す", () => {
     const s = encodePlan([{ day: "09-12", start: "13:00", end: "14:00", showId: "a" }], PCTX);
-    const 直った = [{ id: "a", slots: [{ day: "09-12", start: "13:00", end: "14:30" }] }];
+    const 直った = [{ id: "a", code: "a", slots: [{ day: "09-12", start: "13:00", end: "14:30" }] }];
     expect(decodePlan(s, { ...PCTX, shows: 直った })).toEqual([
       { day: "09-12", start: "13:00", end: "14:30", showId: "a" },
     ]);

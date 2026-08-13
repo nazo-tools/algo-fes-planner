@@ -30,6 +30,7 @@ export const SHOWS = [
   // ---------------------------------------------------------- 11・12Fホール
   {
     id: "genkai",
+    code: "g",
     url: "https://escape.id/algo-org/e-unplanned/",
     title: "ゲンカイ・コウカイ・モモタロウ",
     venue: "hallHigh",
@@ -45,6 +46,7 @@ export const SHOWS = [
   },
   {
     id: "innocent-girl",
+    code: "i",
     url: "https://escape.id/algo-org/e-girl_in_box/",
     title: "Innocent Girl Inside the Box",
     venue: "hallHigh",
@@ -61,6 +63,7 @@ export const SHOWS = [
   },
   {
     id: "otose",
+    code: "o",
     url: "https://escape.id/algo-org/e-otose/",
     title: "落とせ！",
     venue: "hallHigh",
@@ -78,6 +81,7 @@ export const SHOWS = [
   // -------------------------------------------------------------- 2Fルーム
   {
     id: "room201",
+    code: "r",
     url: "https://escape.id/algo-org/e-room_201_algo/",
     title: "二〇一号室",
     venue: "room2f",
@@ -99,6 +103,7 @@ export const SHOWS = [
   },
   {
     id: "kuuki-yomi",
+    code: "k",
     url: "https://escape.id/algo-org/e-real_air_yomi/",
     title: "リアル空気読み。",
     venue: "room2f",
@@ -121,6 +126,7 @@ export const SHOWS = [
   },
   {
     id: "shiken-10min",
+    code: "s",
     url: "https://escape.id/algo-org/e-ten_to/",
     title: "試験開始まで残り10分",
     venue: "room2f",
@@ -143,6 +149,7 @@ export const SHOWS = [
   },
   {
     id: "gobousei",
+    code: "z",
     url: "https://escape.id/algo-org/e-algobousei/",
     title: "ある五芒星の解読",
     venue: "room2f",
@@ -161,6 +168,7 @@ export const SHOWS = [
   },
   {
     id: "oitoke",
+    code: "y",
     url: "https://escape.id/algo-org/e-oitoke/",
     title: "OITOKE!",
     venue: "room2f",
@@ -184,6 +192,7 @@ export const SHOWS = [
   },
   {
     id: "change-challenge",
+    code: "c",
     url: "https://escape.id/algo-org/e-chan_challe/",
     title: "CHANGE CHAlleNGE",
     venue: "room2f",
@@ -207,6 +216,7 @@ export const SHOWS = [
   // -------------------------------------------------------------- 2Fホール
   {
     id: "timer-castle",
+    code: "t",
     url: "https://escape.id/algo-org/e-timers_castle/",
     title: "タイマー城からの脱出",
     venue: "hall2f",
@@ -230,6 +240,7 @@ export const SHOWS = [
   },
   {
     id: "bombs",
+    code: "b",
     url: "https://escape.id/algo-org/e-bombs/",
     title: "BOMBS",
     venue: "hall2f",
@@ -248,6 +259,7 @@ export const SHOWS = [
   },
   {
     id: "destrain",
+    code: "d",
     url: "https://escape.id/algo-org/e-death_train/",
     title: "デストレインからの救済",
     venue: "hall2f",

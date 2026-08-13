@@ -97,9 +97,22 @@ export function saveState(store, s) {
 
 /* ---------------- 共有 ---------------- */
 //
-// 立てた予定をURLに畳む。LINEに貼れる長さに収めたいので、
-// 公演は「id と何回目か」、空けた時間は「日・開始・終了・名札の番号」だけを持つ。
-// 名札は決まった4つからしか選べないので、番号にすれば日本語がURLに出ない。
+// 立てた予定をURLに畳む。区切り文字を使わず、桁数を決め打ちにして詰める。
+//
+//   公演      code(1) 日(1) 開始(2)             → 4文字   例 g0q4
+//   空け時間  "-" 日(1) 開始(2) 終了(2) 名札(1) → 7文字   例 -0nwo81
+//
+// 時刻は分を36進で2桁。20:20 = 1220 = "xw" で収まる（36進2桁は1295まで）。
+// 名札は決まった4つなので番号1桁。おかげで日本語がURLに出ない。
+//
+// 回は「何回目か」ではなく「何時からか」で持つ。時間割を直したときに
+// 黙って別の回にすり替わるより、その予定が落ちるほうがましなので。
+
+const PLAN_VERSION = "2";
+const MAX36 = 36 * 36; // 36進2桁で表せる分数の上限
+
+const b36 = (n) => n.toString(36).padStart(2, "0");
+const un36 = (s) => (/^[0-9a-z]{2}$/.test(s) ? parseInt(s, 36) : NaN);
 
 /** 予定をURLの断片にする。何も無ければ空文字。 */
 export function encodePlan(fixed, { shows, days, labels }) {
@@ -107,24 +120,24 @@ export function encodePlan(fixed, { shows, days, labels }) {
   const parts = [];
 
   for (const f of fixed) {
+    const d = days.indexOf(f.day);
+    if (d < 0 || d > 9) continue;
+    const a = toMinutes(f.start);
+    const b = toMinutes(f.end);
+    if (a >= MAX36 || b >= MAX36) continue;
+
     if (f.showId != null) {
       const show = byId.get(f.showId);
-      if (!show) continue;
-      const d = days.indexOf(f.day);
-      if (d < 0) continue;
-      // 何回目か、ではなく何時からか、で持つ。時間割を直したときに
-      // 黙って別の回にすり替わるより、その予定が落ちるほうがましなので
+      if (!show || !show.code) continue;
       if (!show.slots.some((x) => x.day === f.day && x.start === f.start)) continue;
-      parts.push([f.showId, d, toMinutes(f.start)].join("."));
+      parts.push(show.code + d + b36(a));
     } else {
-      const d = days.indexOf(f.day);
-      if (d < 0) continue;
       const li = labels.indexOf(f.label);
-      parts.push("!" + [d, toMinutes(f.start), toMinutes(f.end), li < 0 ? 0 : li].join("."));
+      parts.push("-" + d + b36(a) + b36(b) + (li < 0 ? 0 : li));
     }
   }
 
-  return parts.length ? ["1", ...parts].join("~") : "";
+  return parts.length ? PLAN_VERSION + parts.join("") : "";
 }
 
 /**
@@ -132,32 +145,29 @@ export function encodePlan(fixed, { shows, days, labels }) {
  * 人からもらうものなので、読めない部分は落として、通ったぶんだけ返す。
  */
 export function decodePlan(str, { shows, days, labels }) {
-  if (typeof str !== "string" || !str) return [];
-  const parts = str.split("~");
-  if (parts.shift() !== "1") return [];
+  if (typeof str !== "string" || str[0] !== PLAN_VERSION) return [];
 
-  const byId = new Map(shows.map((s) => [s.id, s]));
+  const byCode = new Map(shows.filter((s) => s.code).map((s) => [s.code, s]));
   const out = [];
   const seen = new Set();
 
-  for (const p of parts) {
-    if (p.startsWith("!")) {
-      const [d, a, b, li] = p.slice(1).split(".").map(Number);
-      if (!days[d]) continue;
-      if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b > 1440 || a >= b) continue;
+  let i = 1;
+  while (i < str.length) {
+    if (str[i] === "-") {
+      const [d, a, b, li] = [str[i + 1], un36(str.slice(i + 2, i + 4)), un36(str.slice(i + 4, i + 6)), str[i + 6]];
+      i += 7;
+      if (!days[d] || !(a >= 0) || !(b >= 0) || a >= b) continue;
       out.push({ day: days[d], start: toHHMM(a), end: toHHMM(b), label: labels[li] ?? labels[0] });
     } else {
-      const seg = p.split(".");
-      if (seg.length < 3) continue;
-      const at = Number(seg.pop());
-      const day = days[Number(seg.pop())];
-      const id = seg.join(".");
-      const show = byId.get(id);
-      if (!show || !day || !Number.isInteger(at) || seen.has(id)) continue;
+      const show = byCode.get(str[i]);
+      const day = days[str[i + 1]];
+      const at = un36(str.slice(i + 2, i + 4));
+      i += 4;
+      if (!show || !day || !(at >= 0) || seen.has(show.id)) continue;
       const sl = show.slots.find((x) => x.day === day && toMinutes(x.start) === at);
       if (!sl) continue;
-      seen.add(id);
-      out.push({ day: sl.day, start: sl.start, end: sl.end, showId: id });
+      seen.add(show.id);
+      out.push({ day: sl.day, start: sl.start, end: sl.end, showId: show.id });
     }
   }
 

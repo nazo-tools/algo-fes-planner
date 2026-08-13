@@ -130,3 +130,31 @@ describe("公演ページと画像", () => {
     expect(Object.keys(SHOW_IMAGES).sort()).toEqual(SHOWS.map((s) => s.id).sort());
   });
 });
+
+// 共有URLは公演の code と開始時刻を決め打ちの桁数で詰める。
+// ここが崩れると、送ったURLが黙って別の予定として開く。
+describe("共有URLの前提", () => {
+  it("すべての公演に1文字の code がある", () => {
+    for (const s of SHOWS) {
+      expect(s.code, s.id).toMatch(/^[0-9a-z]$/);
+    }
+  });
+
+  it("code が重複していない", () => {
+    const codes = SHOWS.map((s) => s.code);
+    expect(new Set(codes).size).toBe(SHOWS.length);
+  });
+
+  it("開始・終了とも36進2桁（1295分）に収まる", () => {
+    for (const s of SHOWS) {
+      for (const sl of s.slots) {
+        expect(toMinutes(sl.start), s.id + " " + sl.start).toBeLessThan(1296);
+        expect(toMinutes(sl.end), s.id + " " + sl.end).toBeLessThan(1296);
+      }
+    }
+  });
+
+  it("会期は10日ぶんもない（日は1桁で足りる）", () => {
+    expect(FES.days.length).toBeLessThanOrEqual(10);
+  });
+});
