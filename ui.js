@@ -127,6 +127,7 @@ const S = {
   clearing: false, // 全部はずすの確認中か
   brk: { day: ALL_DAYS[0], start: "12:30", end: "13:30", label: BREAK_LABELS[0] },
   mode: "make", // つくる / みる
+  viewDay: "auto", // みる で出す日。auto は会期中なら今日、ふだんは両日
   topOpen: true, // つくる のとき、上の一覧をひらいているか
   brkOpen: false, // 「空けておく」をひらいているか
   shareOpen: false, // 共有のURLを出しているか
@@ -183,6 +184,18 @@ function shareUrl() {
 
 const winOf = (day) => S.windows[day] ?? { from: "", to: "" };
 const DAYS = () => ALL_DAYS.filter((d) => S.going.has(d));
+
+/**
+ * 板に出す日。つくる のときは常に両日（片方だけ見ながら組むと、
+ * もう片方に回せる、が見えなくなる）。みる のときだけ片日に絞れる。
+ * 会期中に みる を開いたら、何も選ばなくても今日だけにする。
+ */
+function viewDays() {
+  const all = DAYS();
+  if (S.mode !== "view" || all.length < 2) return all;
+  const v = S.viewDay === "auto" ? festivalNow(new Date(), FES)?.day ?? null : S.viewDay;
+  return v && all.includes(v) ? [v] : all;
+}
 
 const placedIds = () => new Set(S.fixed.filter((f) => f.showId).map((f) => f.showId));
 const onDay = (day) =>
@@ -781,7 +794,12 @@ function board(host) {
   const now = festivalNow(new Date(), FES);
   nowPanel(host, now);
 
-  const list = S.fixed.filter((f) => f.showId).map((f) => byId.get(f.showId));
+  const days = viewDays();
+
+  // 片日だけ出しているときは、合計もその日のぶんだけにする
+  const list = S.fixed
+    .filter((f) => f.showId && days.includes(f.day))
+    .map((f) => byId.get(f.showId));
   let per = 0;
   let grp = 0;
   for (const s of list) (s.unit === "group" ? (grp += s.price) : (per += s.price));
@@ -789,7 +807,7 @@ function board(host) {
 
   const tot = el("div", "tot");
   tot.appendChild(el("b", null, list.length + "公演"));
-  for (const d of DAYS()) {
+  for (const d of days) {
     const evs = onDay(d);
     let idle = 0;
     for (let i = 1; i < evs.length; i++) idle += evs[i].a - evs[i - 1].b;
@@ -799,6 +817,22 @@ function board(host) {
   }
   tot.appendChild(el("span", "sp", money));
   host.appendChild(tot);
+
+  // 当日は片方しか行かない。みる のときだけ、日で絞れるようにする
+  if (S.mode === "view" && DAYS().length > 1) {
+    const seg = el("div", "seg vday");
+    const shown = days.length > 1 ? null : days[0];
+    for (const [key, label] of [[null, "両日"], ...DAYS().map((d) => [d, DAY_LABEL[d]])]) {
+      const b = el("button", null, label);
+      b.setAttribute("aria-pressed", String(shown === key));
+      b.onclick = () => {
+        S.viewDay = key;
+        render();
+      };
+      seg.appendChild(b);
+    }
+    host.appendChild(seg);
+  }
 
   // 全部はずす。取り返しがつかないので、押した先で一度止める
   if (S.fixed.length) {
@@ -841,8 +875,10 @@ function board(host) {
   }
 
   const grid = el("div", "board");
+  // 出す日の数だけ列を引く。1日だけなら幅が倍になって題名が読める
+  grid.style.gridTemplateColumns = "32px " + "1fr ".repeat(days.length).trim();
   grid.appendChild(el("div", "dh ax", "."));
-  for (const d of DAYS()) grid.appendChild(el("div", "dh", DAY_LABEL[d]));
+  for (const d of days) grid.appendChild(el("div", "dh", DAY_LABEL[d]));
 
   const H = (T1 - T0) * PPM;
   const ax = el("div", "axc");
@@ -854,7 +890,7 @@ function board(host) {
   }
   grid.appendChild(ax);
 
-  for (const day of DAYS()) {
+  for (const day of days) {
     const col = el("div", "daycol");
     col.style.height = H + "px";
     for (let m = T0; m <= T1; m += 60) {
