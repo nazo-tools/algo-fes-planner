@@ -11,9 +11,10 @@ const dayIds = new Set(FES.days.map((d) => d.id));
  * 枠の長さが所要時間と一致しない、既知の例外。
  * 増やすときは必ず原本を見直すこと。
  */
-const KNOWN_LENGTH_EXCEPTIONS = new Set([
-  "oitoke 09-13 18:30-19:20", // 最終回だけ50分。原本を確認済みで、誤記ではない
-]);
+// 所要時間と枠の長さが食い違うものは、今はひとつも無い。
+// かつて oitoke 09-13 の最終回だけ50分で、原本どおりだからと例外にしていたが、
+// 公式の訂正で誤記だったと分かった。合わないものが出たら、まず原本を疑う。
+const KNOWN_LENGTH_EXCEPTIONS = new Set([]);
 
 describe("公演データ", () => {
   it("idが重複していない", () => {
