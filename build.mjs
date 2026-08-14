@@ -41,11 +41,11 @@ const artifact = [`<title>${title[1]}</title>`, style[0], body[1].trim()].join("
 
 // 配る用。非公式であることと、最新は公式で確かめてほしいことを本文に置く
 const NOTICE = `<footer class="notice">
-  <p><b>非公式のファンツールです。</b>早稲田大学謎解き企画algo および ESCAPE.ID とは関係ありません。</p>
-  <p>時間割は公式のタイムテーブルから書き写したもので、間違いが残っているかもしれません。
-  <b>満席かどうかは反映されません。</b>予約と最新の情報は
-  <a href="https://escape.id/fes/algo-fes-2026/" target="_blank" rel="noopener noreferrer">escape.id の公式ページ</a>
-  で確かめてください。</p>
+  <p><b>非公式のファンツールです。</b>早稲田大学謎解き企画algoおよびESCAPE.IDとは関係ありません。</p>
+  <p>時間割は公式タイムテーブルをもとに作成していますが、誤りが含まれている可能性があります。
+  <b>満席状況は反映されません。</b>予約・最新情報は
+  <a href="https://escape.id/fes/algo-fes-2026/" target="_blank" rel="noopener noreferrer">ESCAPE.IDの公式ページ</a>
+  でご確認ください。</p>
 </footer>`;
 
 const NOTICE_CSS = `

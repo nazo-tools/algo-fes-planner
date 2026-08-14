@@ -1779,7 +1779,7 @@ function phase1(host) {
   host.appendChild(bar);
 
   host.appendChild(
-    el("p", "hint", "公演をひらいて回を選ぶと、その回で押さえられます。★を付けておくと、埋めるときに先に入ります。"),
+    el("p", "hint", "公演をひらいて回を選ぶと、その回を予定に入れられます。★を付けておくと、「埋める」で先に入ります。"),
   );
 
   // お気に入りが入らなくなったら、入れ替え案を出す
@@ -1790,7 +1790,7 @@ function phase1(host) {
     const box = el("div", "rescue");
     box.appendChild(el("b", null, "★" + r.title + " が入らなくなりました"));
     if (!r.swaps.length) {
-      box.append("どの予定を動かしても入りません。どれかをはずしてください。");
+      box.append("どの予定を動かしても入りません。どれかの予定をはずしてください。");
     } else {
       box.append("こう入れ替えれば入ります。");
       for (const s of r.swaps) {
@@ -1930,7 +1930,7 @@ function breakPanel() {
     "btn",
     hit
       ? (hit.showId ? byId.get(hit.showId).title : hit.label) + " と重なります"
-      : DAY_LABEL[S.brk.day] + " " + S.brk.start + "–" + S.brk.end + " を" + S.brk.label + "で空ける",
+      : DAY_LABEL[S.brk.day] + " " + S.brk.start + "–" + S.brk.end + " を" + S.brk.label + "として空ける",
   );
   put.disabled = Boolean(hit);
   put.onclick = () => {
@@ -1996,7 +1996,7 @@ function showRow(show, opts, placed) {
 
   if (done) {
     const cur = S.fixed.find((f) => f.showId === show.id);
-    box.appendChild(el("div", "dl", DAY_LABEL[cur.day] + " " + cur.start + "–" + cur.end + " で参加"));
+    box.appendChild(el("div", "dl", DAY_LABEL[cur.day] + " " + cur.start + "–" + cur.end + " に参加"));
     const off = el("button", "btn sub", "やめる");
     off.onclick = () => {
       S.fixed = S.fixed.filter((f) => f.showId !== show.id);
@@ -2078,7 +2078,7 @@ function phase2(host) {
     host.appendChild(r);
   }
   host.appendChild(
-    el("p", "wnote", "午後から行く、夕方までに帰る、というときに使います。指定しなければ、あいている時間ならどこにでも入れます。"),
+    el("p", "wnote", "午後から行く、夕方までに帰る、といったときに使います。指定しなければ、空いている時間に入れます。"),
   );
 
   const favOnly = el("label", "favonly");
@@ -2124,7 +2124,7 @@ function phase2(host) {
       el(
         "p",
         "hint",
-        "入れたあとのあき　" +
+        "入れたあとの空き　" +
           DAYS()
             .map((d) => DAY_LABEL[d] + " " + (res.idleByDay[d] ?? 0) + "分")
             .join(" / "),
@@ -2146,7 +2146,7 @@ function phase2(host) {
       any = true;
       const c = el("div", "gapc");
       c.appendChild(el("div", "gt", DAY_LABEL[day] + "　" + hhmm(g.a) + "〜" + hhmm(g.b)));
-      c.appendChild(el("div", "gs", g.b - g.a + "分あいています"));
+      c.appendChild(el("div", "gs", g.b - g.a + "分空いています"));
       const chips = el("div", "chips");
       cands.sort((x, y) => x.left - y.left || x.hit.startMin - y.hit.startMin);
 
@@ -2301,7 +2301,7 @@ function sharedBar(host) {
     dropHash();
     render();
   };
-  const back = el("button", "clr", "見るだけ（元に戻す）");
+  const back = el("button", "clr", "見るだけ（自分の予定に戻す）");
   back.onclick = () => {
     S.fixed = S.mine ?? [];
     S.shared = false;
@@ -2341,7 +2341,7 @@ function sharePanel(host) {
   box.appendChild(cp);
 
   box.appendChild(
-    el("p", "fine", "開いた人には「送られてきた予定」として出ます。相手が取り込むまで、相手の予定はそのまま残ります。"),
+    el("p", "fine", "開いた人には「送られてきた予定」として出ます。相手が取り込むまで、相手自身の予定はそのまま残ります。"),
   );
   host.appendChild(box);
 }
@@ -2352,7 +2352,7 @@ function board(host) {
   if (S.mode === "view" && !S.fixed.length) {
     const b = el("div", "vacant");
     b.appendChild(el("b", null, "まだ予定がありません"));
-    const go = el("button", "btn", "つくる にもどる");
+    const go = el("button", "btn", "つくるに戻る");
     go.onclick = () => {
       S.mode = "make";
       render();
@@ -2383,7 +2383,7 @@ function board(host) {
     let idle = 0;
     for (let i = 1; i < evs.length; i++) idle += evs[i].a - evs[i - 1].b;
     tot.appendChild(
-      el("span", null, DAY_LABEL[d] + " " + evs.filter((f) => f.showId).length + "（あき" + idle + "分）"),
+      el("span", null, DAY_LABEL[d] + " " + evs.filter((f) => f.showId).length + "（空き" + idle + "分）"),
     );
   }
   tot.appendChild(el("span", "sp", money));
@@ -2470,7 +2470,7 @@ function board(host) {
       col.appendChild(h);
     }
     const evs = onDay(day);
-    if (!evs.length) col.appendChild(el("div", "emptyday", "まだ予定なし"));
+    if (!evs.length) col.appendChild(el("div", "emptyday", "まだ予定がありません"));
     for (const f of evs) {
       const show = f.showId ? byId.get(f.showId) : null;
       // 終わったものは薄くする。当日、残りだけを目で拾えるように
@@ -2522,7 +2522,7 @@ function intro() {
     [
       "2",
       "埋める",
-      "残った空き時間に入る公演を出します。押さえた予定は動かしません。土日をまとめて見て、待ち時間が短くなる入れ方を選びます。",
+      "残った空き時間に入れられる公演を提案します。押さえた予定は動かしません。土日をまとめて見て、待ち時間が短くなる入れ方を選びます。",
     ],
   ]) {
     const li = el("li");
