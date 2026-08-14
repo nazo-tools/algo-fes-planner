@@ -204,13 +204,19 @@ const onDay = (day) =>
     .map((f) => ({ ...f, a: toMinutes(f.start), b: toMinutes(f.end) }))
     .sort((x, y) => x.a - y.a);
 
-const optionsIndex = () =>
-  new Map(
-    placementOptions(SHOWS, S.fixed, { days: DAYS(), bufferMin: BUFFER }).map((p) => [
+/**
+ * まだ置いていない公演ごとに、いま入れられる枠の一覧。
+ * 埋める側では ★だけ と 入れてよい時間 を、押さえる側では素のまま使う。
+ */
+const optionsIndex = ({ onlyFav = false, windows = undefined } = {}) => {
+  const src = onlyFav ? SHOWS.filter((s) => S.favorites.has(s.id)) : SHOWS;
+  return new Map(
+    placementOptions(src, S.fixed, { days: DAYS(), bufferMin: BUFFER, windows }).map((p) => [
       p.showId,
       p.options,
     ]),
   );
+};
 
 /* 全日の時間軸をそろえる */
 const ALL = SHOWS.flatMap((s) => s.slots.map((x) => [toMinutes(x.start), toMinutes(x.end)]));
@@ -516,6 +522,7 @@ function phase2(host) {
   );
 
   // 日ごとの時間帯。入れてほしい時間の範囲を絞る
+  host.appendChild(el("div", "wh", "入れてよい時間"));
   for (const day of DAYS()) {
     const w = winOf(day);
     const set = (k) => (v) => {
@@ -541,6 +548,9 @@ function phase2(host) {
     );
     host.appendChild(r);
   }
+  host.appendChild(
+    el("p", "wnote", "午後から行く、夕方までに帰る、というときに使います。指定しなければ、あいている時間ならどこにでも入れます。"),
+  );
 
   const favOnly = el("label", "favonly");
   const cb = el("input");
@@ -593,7 +603,8 @@ function phase2(host) {
     );
   }
 
-  const opts = optionsIndex();
+  // 下の候補も、上の絞り込みに従わせる。おまかせと違う顔ぶれが出ると読めなくなる
+  const opts = optionsIndex({ onlyFav: S.onlyFav, windows: S.windows });
   let any = false;
   for (const day of DAYS()) {
     for (const g of gapsOf(day)) {
@@ -626,7 +637,19 @@ function phase2(host) {
       host.appendChild(c);
     }
   }
-  if (!any) host.appendChild(el("p", "none", "空いているところに入る公演はもうありません。"));
+  if (!any) {
+    host.appendChild(
+      el(
+        "p",
+        "none",
+        S.onlyFav && !S.favorites.size
+          ? "★を付けた公演がありません。「押さえる」で★を付けるか、この絞り込みを外してください。"
+          : S.onlyFav
+            ? "★を付けた公演で、空いているところに入るものはもうありません。"
+            : "空いているところに入る公演はもうありません。",
+      ),
+    );
+  }
 }
 
 /** その日の予定のあいだの空き。前後の余裕(バッファ)を引いた実効の範囲で返す。 */

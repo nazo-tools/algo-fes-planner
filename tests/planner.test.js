@@ -408,6 +408,44 @@ describe("placementOptions", () => {
     const res = placementOptions(shows, fixed, { days: [D], bufferMin: 10 });
     expect(res[0].options).toEqual([]);
   });
+
+  // 「入れてよい時間」を指定したら、候補もそれに従う。
+  // おまかせと下の候補で顔ぶれが違うと、どちらを信じればいいのか分からなくなる。
+  it("指定した時間より前に始まる枠は候補から外す", () => {
+    const shows = [show("a", [[D, "10:00", "11:00"], [D, "14:00", "15:00"]])];
+    const res = placementOptions(shows, [], {
+      days: [D],
+      bufferMin: 10,
+      windows: { [D]: { from: "13:00", to: "" } },
+    });
+    expect(res[0].options.map((o) => o.start)).toEqual(["14:00"]);
+  });
+
+  it("指定した時間より後に終わる枠も外す", () => {
+    const shows = [show("a", [[D, "10:00", "11:00"], [D, "14:00", "15:00"]])];
+    const res = placementOptions(shows, [], {
+      days: [D],
+      bufferMin: 10,
+      windows: { [D]: { from: "", to: "12:00" } },
+    });
+    expect(res[0].options.map((o) => o.start)).toEqual(["10:00"]);
+  });
+
+  it("指定のない日はそのまま全部通す", () => {
+    const other = "09-13";
+    const shows = [show("a", [[D, "10:00", "11:00"], [other, "10:00", "11:00"]])];
+    const res = placementOptions(shows, [], {
+      days: [D, other],
+      bufferMin: 10,
+      windows: { [D]: { from: "13:00", to: "" } },
+    });
+    expect(res[0].options.map((o) => o.day)).toEqual([other]);
+  });
+
+  it("windows を渡さなければ何も絞らない", () => {
+    const shows = [show("a", [[D, "10:00", "11:00"], [D, "14:00", "15:00"]])];
+    expect(placementOptions(shows, [], { days: [D], bufferMin: 10 })[0].options).toHaveLength(2);
+  });
 });
 
 describe("suggestFills", () => {

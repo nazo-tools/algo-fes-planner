@@ -286,7 +286,7 @@ function hitsFixed(slot, fixedOnDay, bufferMin) {
  * options が1件だけなら「ここを逃すともう入らない」ということ。UIで警告に使う。
  */
 export function placementOptions(shows, fixed = [], opts = {}) {
-  const { days = [], bufferMin = 10 } = opts;
+  const { days = [], bufferMin = 10, windows = {} } = opts;
   const placed = new Set(fixed.filter((f) => f.showId).map((f) => f.showId));
 
   return (shows ?? [])
@@ -295,7 +295,14 @@ export function placementOptions(shows, fixed = [], opts = {}) {
       const options = [];
       for (const day of days) {
         const fixedOnDay = fixed.filter((f) => f.day === day);
-        for (const slot of collectSlots(show, { day, minStartMin: -Infinity, maxEndMin: Infinity })) {
+        // 入れてよい時間の指定があれば、その外の枠は最初から候補にしない
+        const w = windows?.[day] ?? {};
+        const bounds = {
+          day,
+          minStartMin: w.from ? toMinutes(w.from) : -Infinity,
+          maxEndMin: w.to ? toMinutes(w.to) : Infinity,
+        };
+        for (const slot of collectSlots(show, bounds)) {
           if (!hitsFixed(slot, fixedOnDay, bufferMin)) options.push(slot);
         }
       }
