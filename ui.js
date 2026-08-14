@@ -18,6 +18,7 @@ import {
 import { loadState, saveState, encodePlan, decodePlan } from "./storage.js";
 
 const BUFFER = 10;
+const GAP_CHIPS = 6; // ひとつのあきに、たたんだ状態で出す候補の数
 /** 空けておく時間の名前。ここに無いものは「用事」で足りる、という想定 */
 const BREAK_LABELS = ["休憩", "ごはん", "移動", "用事"];
 const ALL_DAYS = FES.days.map((d) => d.id);
@@ -130,6 +131,7 @@ const S = {
   viewDay: "auto", // みる で出す日。auto は会期中なら今日、ふだんは両日
   topOpen: true, // つくる のとき、上の一覧をひらいているか
   brkOpen: false, // 「空けておく」をひらいているか
+  gapOpen: new Set(), // 候補を全部出しているあき
   shareOpen: false, // 共有のURLを出しているか
   copied: false,
   shared: false, // 人からもらった予定を見ているか（この間は保存しない）
@@ -250,7 +252,7 @@ function phase1(host) {
   host.appendChild(bar);
 
   host.appendChild(
-    el("p", "hint", "公演をひらいて回を選ぶと、その回で確定します。★は「埋める」で先に入ります。"),
+    el("p", "hint", "公演をひらいて回を選ぶと、その回で押さえられます。★を付けておくと、埋めるときに先に入ります。"),
   );
 
   // お気に入りが入らなくなったら、入れ替え案を出す
@@ -263,7 +265,7 @@ function phase1(host) {
     if (!r.swaps.length) {
       box.append("どの予定を動かしても入りません。どれかをはずしてください。");
     } else {
-      box.append("こう入れ替えると入ります:");
+      box.append("こう入れ替えれば入ります。");
       for (const s of r.swaps) {
         const b = el(
           "button",
@@ -444,7 +446,7 @@ function showRow(show, opts, placed) {
   meta.appendChild(el("span", null, show.people));
   meta.appendChild(el("span", null, yen(show.price) + (show.unit === "group" ? "/回" : "")));
   if (done) meta.appendChild(el("span", "okq", "参加する"));
-  else if (left === 0) meta.appendChild(el("span", "warnq", "入らない"));
+  else if (left === 0) meta.appendChild(el("span", "warnq", "入る回なし"));
   else if (left <= 2) meta.appendChild(el("span", "warnq", "残り" + left));
   txt.appendChild(meta);
   title.appendChild(txt);
@@ -512,13 +514,13 @@ function phase2(host) {
   // 公演がひとつも無くても、空けた時間だけ置いて全部おまかせ、は成り立つ
   if (S.fixed.length === 0) {
     host.appendChild(
-      el("p", "hint", "まず「押さえる」で参加する回を置くか、空けておきたい時間を決めてください。ここは残りを埋める段階です。"),
+      el("p", "hint", "まず「押さえる」で参加する回を置くか、空けておきたい時間を決めてください。ここは、残った時間を埋めるところです。"),
     );
     return;
   }
 
   host.appendChild(
-    el("p", "hint", "置いた予定は動かしません。土日どちらも見たうえで、待ち時間が短くなるように詰めます。"),
+    el("p", "hint", "置いた予定は動かしません。土日をまとめて見て、待ち時間が短くなるように詰めます。"),
   );
 
   // 日ごとの時間帯。入れてほしい時間の範囲を絞る
@@ -533,7 +535,7 @@ function phase2(host) {
     r.appendChild(el("span", "lbl", DAY_LABEL[day]));
     r.appendChild(
       timeField("w-" + day + "-from", w.from, set("from"), {
-        label: DAY_LABEL[day] + " これ以降に入れる",
+        label: DAY_LABEL[day] + " ここから後に入れる",
         placeholder: "はじめから",
         clearable: true,
       }),
@@ -541,7 +543,7 @@ function phase2(host) {
     r.appendChild(el("span", "tilde", "〜"));
     r.appendChild(
       timeField("w-" + day + "-to", w.to, set("to"), {
-        label: DAY_LABEL[day] + " これ以前に終える",
+        label: DAY_LABEL[day] + " ここまでに終える",
         placeholder: "おわりまで",
         clearable: true,
       }),
@@ -595,7 +597,7 @@ function phase2(host) {
       el(
         "p",
         "hint",
-        "入れたあとのあき合計: " +
+        "入れたあとのあき　" +
           DAYS()
             .map((d) => DAY_LABEL[d] + " " + (res.idleByDay[d] ?? 0) + "分")
             .join(" / "),
@@ -620,7 +622,15 @@ function phase2(host) {
       c.appendChild(el("div", "gs", g.b - g.a + "分あいています"));
       const chips = el("div", "chips");
       cands.sort((x, y) => x.left - y.left || x.hit.startMin - y.hit.startMin);
-      for (const cd of cands.slice(0, 6)) {
+
+      // 残り枠の少ないものから数件だけ出す。あきが並ぶと画面が候補で埋まるので。
+      // ただし隠した数は見せないと、これで全部だと読まれる
+      const key = day + "@" + g.a;
+      const open = S.gapOpen.has(key);
+      const shown = open ? cands : cands.slice(0, GAP_CHIPS);
+      const hidden = cands.length - shown.length;
+
+      for (const cd of shown) {
         const show = byId.get(cd.id);
         const b = el("button", "chip");
         b.style.setProperty("--venue", vcol(show.venue));
@@ -634,6 +644,17 @@ function phase2(host) {
         chips.appendChild(b);
       }
       c.appendChild(chips);
+
+      if (hidden > 0 || open) {
+        const more = el("button", "more", open ? "とじる" : "もっと見る（あと" + hidden + "件）");
+        more.setAttribute("aria-expanded", String(open));
+        more.onclick = () => {
+          if (open) S.gapOpen.delete(key);
+          else S.gapOpen.add(key);
+          render();
+        };
+        c.appendChild(more);
+      }
       host.appendChild(c);
     }
   }
@@ -743,7 +764,7 @@ function sharedBar(host) {
     el("b", null, "送られてきた予定です（" + S.fixed.length + "件）"),
   );
   bar.appendChild(
-    el("span", "q", "まだ保存していません。取り込むと、いま自分が立てている予定は置き換わります。"),
+    el("span", "q", "まだ保存していません。取り込むと、今の自分の予定と入れ替わります。"),
   );
 
   const take = el("button", "clr armed", "自分の予定にする");
@@ -793,7 +814,7 @@ function sharePanel(host) {
   box.appendChild(cp);
 
   box.appendChild(
-    el("p", "fine", "開いた人には、この予定が「送られてきた予定」として出ます。その人が今立てている予定は、取り込むと言うまで消えません。"),
+    el("p", "fine", "開いた人には「送られてきた予定」として出ます。相手が取り込むまで、相手の予定はそのまま残ります。"),
   );
   host.appendChild(box);
 }
@@ -969,12 +990,12 @@ function intro() {
     [
       "1",
       "押さえる",
-      "これだけは外せない公演を、参加する回まで自分で選んで置きます。ごはんや移動、用事で埋めたくない時間も、ここで先に空けておきます。",
+      "これだけは外せない公演を、参加する回まで自分で選んで置きます。ごはんや移動、用事にあてる時間も、ここで先に空けておきます。",
     ],
     [
       "2",
       "埋める",
-      "残った空き時間に入る公演を出します。押さえた予定は動かしません。土日どちらも同時に見て、待ち時間が短くなる入れ方を選びます。",
+      "残った空き時間に入る公演を出します。押さえた予定は動かしません。土日をまとめて見て、待ち時間が短くなる入れ方を選びます。",
     ],
   ]) {
     const li = el("li");
@@ -988,7 +1009,7 @@ function intro() {
   box.appendChild(ol);
 
   box.appendChild(
-    el("p", "fine", "★を付けた公演は「埋める」で優先して入ります。入らなくなったときは入れ替え方を出します。"),
+    el("p", "fine", "★を付けた公演は「埋める」で先に入ります。入らなくなったら、どう入れ替えれば入るかを出します。"),
   );
 
   const ok = el("button", "btn", "はじめる");
